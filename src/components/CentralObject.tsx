@@ -16,9 +16,9 @@ export function CentralObject({ colorHex, imageUrl }: CentralObjectProps) {
       >
         {imageUrl ? (
           <motion.div
-            className="relative w-80 md:w-[600px] flex items-center justify-center drop-shadow-2xl"
+            className="relative w-80 md:w-[600px] flex items-center justify-center"
             animate={{
-              filter: `drop-shadow(0 0 40px ${colorHex}40)`,
+              filter: `drop-shadow(5px 10px 20px rgba(0,0,0,0.2))`,
             }}
             transition={{ duration: 0.5 }}
           >
@@ -32,10 +32,10 @@ export function CentralObject({ colorHex, imageUrl }: CentralObjectProps) {
         ) : (
           /* Abstract PSP Shape Fallback */
           <motion.div
-            className="w-72 h-32 md:w-[480px] md:h-[200px] rounded-full shadow-2xl relative overflow-hidden border border-white/10"
+            className="w-72 h-32 md:w-[480px] md:h-[200px] rounded-full relative overflow-hidden border border-black/5"
             animate={{
               backgroundColor: colorHex,
-              boxShadow: `0 0 80px ${colorHex}40, inset 0 0 60px rgba(0,0,0,0.6)`,
+              boxShadow: `5px 10px 25px rgba(0,0,0,0.15), inset 0 0 20px rgba(0,0,0,0.1)`,
             }}
             transition={{ duration: 0.5 }}
           >
@@ -72,9 +72,7 @@ export function CentralObject({ colorHex, imageUrl }: CentralObjectProps) {
         <motion.div
           className="absolute inset-0 pointer-events-none"
           animate={{
-            y: [-10, 10, -10],
-            rotateX: [-5, 5, -5],
-            rotateY: [-5, 5, -5],
+            y: [-5, 5, -5],
           }}
           transition={{
             duration: 6,

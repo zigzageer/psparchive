@@ -5,7 +5,8 @@ export function MiniPSP({ colorHex, imageUrl, className = '' }: { colorHex: stri
         <img 
           src={imageUrl} 
           alt="PSP" 
-          className="w-full h-full object-contain drop-shadow-md"
+          className="w-full h-full object-contain"
+          style={{ filter: 'drop-shadow(3px 5px 10px rgba(0,0,0,0.2))' }}
           referrerPolicy="no-referrer"
         />
       </div>
@@ -14,10 +15,10 @@ export function MiniPSP({ colorHex, imageUrl, className = '' }: { colorHex: stri
 
   return (
     <div
-      className={`relative rounded-full shadow-lg overflow-hidden border border-white/10 ${className}`}
+      className={`relative rounded-full overflow-hidden border border-black/5 ${className}`}
       style={{
         backgroundColor: colorHex,
-        boxShadow: `0 0 20px ${colorHex}40, inset 0 0 10px rgba(0,0,0,0.5)`
+        boxShadow: `3px 5px 12px rgba(0,0,0,0.15), inset 0 0 10px rgba(0,0,0,0.1)`
       }}
     >
       <div className="absolute top-0 left-1/4 right-1/4 h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-full blur-md transform -translate-y-1/4" />
