@@ -184,7 +184,7 @@ export default function App() {
                 </div>
 
                 <p className="text-lg text-slate-700 leading-relaxed font-mono mt-6">
-                  {selectedDetail.model.description}
+                  {selectedDetail.color.description}
                 </p>
               </div>
             </motion.div>
