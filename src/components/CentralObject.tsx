@@ -3,32 +3,51 @@ import { motion } from 'motion/react';
 interface CentralObjectProps {
   colorHex: string;
   imageUrl?: string;
+  backImageUrl?: string;
 }
 
-export function CentralObject({ colorHex, imageUrl }: CentralObjectProps) {
+export function CentralObject({ colorHex, imageUrl, backImageUrl }: CentralObjectProps) {
   return (
-    <div className="relative z-10 flex items-center justify-center w-full h-full">
+    <div className="relative z-10 flex flex-col items-center justify-center w-full h-full gap-8">
       <motion.div
-        className="relative flex items-center justify-center"
+        className="relative flex flex-col items-center justify-center gap-8"
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
       >
         {imageUrl ? (
-          <motion.div
-            className="relative w-80 md:w-[600px] flex items-center justify-center"
-            animate={{
-              filter: `drop-shadow(5px 10px 20px rgba(0,0,0,0.2))`,
-            }}
-            transition={{ duration: 0.5 }}
-          >
-            <img 
-              src={imageUrl} 
-              alt="PSP Color Variation" 
-              className="w-full h-auto object-contain"
-              referrerPolicy="no-referrer"
-            />
-          </motion.div>
+          <>
+            <motion.div
+              className="relative w-80 md:w-[600px] flex items-center justify-center"
+              animate={{
+                filter: `drop-shadow(5px 10px 20px rgba(0,0,0,0.2))`,
+              }}
+              transition={{ duration: 0.5 }}
+            >
+              <img 
+                src={imageUrl} 
+                alt="PSP Color Variation Front" 
+                className="w-full h-auto object-contain"
+                referrerPolicy="no-referrer"
+              />
+            </motion.div>
+            {backImageUrl && (
+              <motion.div
+                className="relative w-80 md:w-[600px] flex items-center justify-center"
+                animate={{
+                  filter: `drop-shadow(5px 10px 20px rgba(0,0,0,0.2))`,
+                }}
+                transition={{ duration: 0.5 }}
+              >
+                <img 
+                  src={backImageUrl} 
+                  alt="PSP Color Variation Back" 
+                  className="w-full h-auto object-contain"
+                  referrerPolicy="no-referrer"
+                />
+              </motion.div>
+            )}
+          </>
         ) : (
           /* Abstract PSP Shape Fallback */
           <motion.div

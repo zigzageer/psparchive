@@ -154,7 +154,7 @@ export default function App() {
             >
               {/* Left: Image/Object */}
               <div className="flex-1 w-full flex items-center justify-center min-h-[300px] md:min-h-[500px]">
-                <CentralObject colorHex={selectedDetail.color.hex} imageUrl={selectedDetail.color.imageUrl} />
+                <CentralObject colorHex={selectedDetail.color.hex} imageUrl={selectedDetail.color.imageUrl} backImageUrl={selectedDetail.color.backImageUrl} />
               </div>
 
               {/* Right: Details */}
