@@ -14,7 +14,7 @@ const ALL_MODELS = ['all', 'PSP-1000', 'PSP-2000', 'PSP-3000', 'PSP Go', 'PSP St
 const COLOR_FAMILIES = ['all', 'black', 'white', 'silver', 'blue', 'red', 'pink', 'gold', 'green', 'yellow', 'purple', 'bronze'];
 
 export default function App() {
-  const [viewMode, setViewMode] = useState<ViewMode>('timeline');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [filterModel, setFilterModel] = useState<string>('all');
   const [filterColor, setFilterColor] = useState<string>('all');
@@ -22,7 +22,19 @@ export default function App() {
   const [selectedDetail, setSelectedDetail] = useState<{ model: typeof pspData[0], color: typeof pspData[0]['colors'][0] } | null>(null);
 
   return (
-    <div className="relative w-full h-screen bg-[#f4f4f0] text-slate-900 font-sans overflow-hidden selection:bg-slate-200 bg-grid-pattern">
+    <div className="relative w-full h-screen text-slate-900 font-sans overflow-hidden selection:bg-slate-200">
+      {/* YouTube Video Background */}
+      <div className="absolute inset-0 z-0 overflow-hidden bg-[#f4f4f0]">
+        <iframe
+          className="absolute top-1/2 left-1/2 w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] -translate-x-1/2 -translate-y-1/2 opacity-40 pointer-events-none"
+          src="https://www.youtube.com/embed/f69hchHllYE?autoplay=1&mute=1&controls=0&loop=1&playlist=f69hchHllYE&playsinline=1"
+          allow="autoplay; encrypted-media"
+          style={{ border: 0 }}
+        />
+        {/* Light overlay to maintain text readability and add a subtle blur */}
+        <div className="absolute inset-0 bg-[#f4f4f0]/70 backdrop-blur-[2px]" />
+      </div>
+
       {/* Top Navigation Bar */}
       <div className="absolute top-0 left-0 right-0 z-50 p-4 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-gradient-to-b from-[#f4f4f0] via-[#f4f4f0]/90 to-transparent pointer-events-none">
         

@@ -30,19 +30,19 @@ export function GridView({ data, filterType, filterModel, filterColor, onSelect 
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.05, y: -4 }}
             transition={{ delay: Math.min(i * 0.02, 0.5), type: "spring", stiffness: 300 }}
-            className="flex flex-col items-center gap-4 cursor-pointer"
+            className="flex flex-col items-center gap-4 cursor-pointer p-4 rounded-2xl hover:bg-white/5 transition-colors"
             onClick={() => onSelect?.(item.model, item.color)}
           >
             <MiniPSP colorHex={item.color.hex} imageUrl={item.color.imageUrl} className="w-32 h-16" />
             <div className="text-center flex flex-col items-center">
-              <div className="text-xs font-bold uppercase tracking-wider leading-tight mb-1.5 text-slate-800">{item.color.name}</div>
-              <div className="text-[10px] font-mono text-slate-500 uppercase flex items-center gap-2">
+              <div className="text-xs font-bold uppercase tracking-wider leading-tight mb-1.5 text-white drop-shadow-sm">{item.color.name}</div>
+              <div className="text-[10px] font-mono text-white/60 uppercase flex items-center gap-2 drop-shadow-sm">
                 <span>{item.model.name}</span>
-                <span className="w-1 h-1 rounded-full bg-slate-300" />
+                <span className="w-1 h-1 rounded-full bg-white/30" />
                 <span>{item.model.year}</span>
               </div>
               {item.color.type === 'limited' && (
-                <div className="text-[9px] font-mono text-amber-600 uppercase mt-2 border border-amber-200 px-2 py-0.5 rounded-sm bg-amber-50">
+                <div className="text-[9px] font-mono text-amber-400 uppercase mt-2 border border-amber-400/30 px-2 py-0.5 rounded-sm bg-amber-400/10">
                   Limited
                 </div>
               )}
