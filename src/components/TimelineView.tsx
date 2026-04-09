@@ -11,63 +11,61 @@ interface TimelineViewProps {
 }
 
 export function TimelineView({ data, filterType, filterModel, filterColor, onSelect }: TimelineViewProps) {
+  const filteredData = data.filter(model => filterModel === 'all' || model.name === filterModel).map(model => ({
+    ...model,
+    colors: model.colors.filter(color => {
+      const typeMatch = filterType === 'all' || color.type === filterType;
+      const familyMatch = filterColor === 'all' || color.name.toLowerCase().includes(filterColor.toLowerCase());
+      return typeMatch && familyMatch;
+    })
+  })).filter(model => model.colors.length > 0);
+
+  if (filteredData.length === 0) {
+    return <div className="w-full h-full flex items-center justify-center text-slate-500">No results found</div>;
+  }
+
   return (
-    <div className="w-full h-full overflow-auto pt-40 pb-20 px-12 custom-scrollbar">
-      <div className="flex gap-16 md:gap-32 min-w-max relative">
+    <div className="w-full h-full overflow-x-auto overflow-y-auto pt-32 pb-20 px-12 custom-scrollbar flex items-start">
+      <div className="relative flex gap-12 min-w-max px-12 pb-12">
         {/* Horizontal Line */}
         <div className="absolute left-0 right-0 h-px bg-white/20 top-6" />
 
-        {data.map((model, i) => {
-          if (filterModel !== 'all' && model.name !== filterModel) return null;
+        {filteredData.map((model, i) => (
+          <motion.div 
+            key={model.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="relative flex flex-col items-center"
+          >
+            {/* Timeline Node */}
+            <div className="w-6 h-6 rounded-full bg-black border-[3px] border-white/30 z-10 mb-8 relative">
+              <div className="absolute top-full left-1/2 -translate-x-1/2 w-[2px] h-8 bg-white/20" />
+            </div>
 
-          const filteredColors = model.colors.filter(c => {
-            const matchType = filterType === 'all' || c.type === filterType;
-            const matchColor = filterColor === 'all' || c.name.toLowerCase().includes(filterColor.toLowerCase());
-            return matchType && matchColor;
-          });
-          if (filteredColors.length === 0) return null;
+            {/* Card */}
+            <div className="bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 p-8 w-[320px] flex flex-col items-center">
+              <h2 className="text-5xl font-black text-white tracking-tighter mb-2">{model.year}</h2>
+              <h3 className="text-xs font-mono text-slate-400 uppercase tracking-[0.3em] mb-10">{model.name}</h3>
 
-          return (
-            <motion.div
-              key={model.id}
-              className="relative flex flex-col items-center w-[320px]"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-            >
-              {/* Node on the line */}
-              <div className="absolute top-6 -translate-y-1/2 w-4 h-4 bg-black border-2 border-white/40 rounded-full z-10" />
-              {/* Vertical Line hanging down */}
-              <div className="absolute top-6 bottom-0 w-px bg-white/20 -z-10" />
-
-              <div className="mt-16 flex flex-col items-center w-full">
-                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 w-full flex flex-col items-center backdrop-blur-sm">
-                  <div className="text-5xl font-bold tracking-tighter mb-1 text-white">{model.year}</div>
-                  <div className="text-lg font-mono text-slate-400 uppercase tracking-widest mb-8 text-center">{model.name}</div>
-
-                  <div className="flex flex-wrap justify-center gap-6">
-                    {filteredColors.map((color, cIdx) => (
-                      <motion.div
-                        key={color.name}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        whileHover={{ scale: 1.1, y: -4 }}
-                        transition={{ delay: i * 0.1 + cIdx * 0.02, type: "spring", stiffness: 300 }}
-                        className="flex flex-col items-center gap-3 cursor-pointer"
-                        onClick={() => onSelect?.(model, color)}
-                      >
-                        <MiniPSP colorHex={color.hex} imageUrl={color.imageUrl} className="w-24 h-12" />
-                        <div className="text-[10px] font-mono text-center max-w-[90px] text-slate-400 opacity-80 hover:opacity-100 transition-opacity leading-tight">
-                          {color.name}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-10 w-full">
+                {model.colors.map((color) => (
+                  <motion.div 
+                    key={color.name}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    className="flex flex-col items-center cursor-pointer"
+                    onClick={() => onSelect?.(model, color)}
+                  >
+                    <MiniPSP colorHex={color.hex} imageUrl={color.imageUrl} className="w-24 h-12 mb-4" />
+                    <span className="text-[10px] font-mono text-slate-400 text-center leading-tight px-2">
+                      {color.name}
+                    </span>
+                  </motion.div>
+                ))}
               </div>
-            </motion.div>
-          );
-        })}
+            </div>
+          </motion.div>
+        ))}
       </div>
     </div>
   );
