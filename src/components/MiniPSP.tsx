@@ -1,11 +1,11 @@
 export function MiniPSP({ colorHex, imageUrl, className = '' }: { colorHex: string, imageUrl?: string, className?: string }) {
   if (imageUrl) {
     return (
-      <div className={`relative flex items-center justify-center ${className}`}>
+      <div className={`relative flex items-center justify-center overflow-hidden ${className}`}>
         <img 
           src={imageUrl} 
           alt="PSP" 
-          className="w-full h-full object-contain"
+          className="w-full h-full object-cover"
           style={{ filter: 'drop-shadow(3px 5px 10px rgba(0,0,0,0.2))' }}
           referrerPolicy="no-referrer"
         />

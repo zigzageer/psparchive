@@ -18,38 +18,87 @@
 - **Responsive Design**: Fully optimized for mobile, tablet, and desktop viewing.
 - **High-Quality Assets**: Custom CSS-drawn PSP icons and high-resolution imagery for special editions.
 
+- **Image Gallery**: Click any PSP to open a detail view with a full image gallery — browse front, back, magazine clippings, teardown photos, and more.
+
 ## 🛠️ Tech Stack
 
 - **Framework**: [React 19](https://react.dev/) + [Vite](https://vitejs.dev/)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **Animations**: [Motion (Framer Motion)](https://motion.dev/)
 - **Icons**: [Lucide React](https://lucide.dev/)
+- **Image Storage**: [Vercel Blob](https://vercel.com/docs/storage/vercel-blob)
 - **Deployment**: [Vercel](https://vercel.com/)
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-Make sure you have [Node.js](https://nodejs.org/) (v18 or newer) installed.
+Make sure you have [Node.js](https://nodejs.org/) (v18 or newer) and [pnpm](https://pnpm.io/) installed.
 
 ### Installation
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/psp-archive.git
-   cd psp-archive
+   git clone https://github.com/zigzageer/psparchive.git
+   cd psparchive
    ```
 
 2. Install dependencies:
    ```bash
-   npm install
+   pnpm install
    ```
 
-3. Start the development server:
+3. Set up environment variables:
    ```bash
-   npm run dev
+   cp .env.example .env
+   ```
+   Add your `BLOB_READ_WRITE_TOKEN` to `.env` (required for image sync).
+
+4. Start the development server:
+   ```bash
+   pnpm dev
    ```
 
-4. Open your browser and navigate to `http://localhost:3000`.
+5. Open your browser and navigate to `http://localhost:3000`.
+
+## 🖼️ Image Pipeline
+
+All PSP images are stored in [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) and managed via a local mirror folder.
+
+### Folder Structure
+
+```
+blob-images/            # Local mirror (gitignored)
+  psp-1000/
+    piano-black/
+      front.png
+      back.png
+    metallic-blue/
+      front.png
+      back.png
+      magazine-scan.jpg  # Add any extra images here
+  psp-2000/
+    ice-silver/
+      front.png
+      teardown-01.jpg
+    ...
+```
+
+### Adding New Images
+
+1. Drop images into the appropriate folder under `blob-images/{model}/{color}/`
+2. Run the sync script:
+   ```bash
+   pnpm sync-blob
+   ```
+3. The script uploads new images to Vercel Blob and regenerates `src/blob-manifest.json`
+4. The app gallery automatically picks up the new images
+
+### Available Scripts
+
+| Command | Description |
+|---|---|
+| `pnpm download-images` | Download existing PSP images from the web into `blob-images/` |
+| `pnpm sync-blob` | Upload `blob-images/` to Vercel Blob and regenerate the manifest |
 
 ## 📦 Deployment
 
