@@ -4,26 +4,42 @@
 Interactive visual archive of every PSP (PlayStation Portable) model and color variation ever released. Hosted at psp.quest.
 
 ## Tech Stack
-- React 19 + Vite + Tailwind CSS v4 + Framer Motion (`motion`) + Lucide icons
-- Static data in `src/data.ts` (no database/API)
+- React 19 + Vite + Tailwind CSS v4 + Motion (`motion/react`) + Lucide icons
+- Static data in `src/data.ts` (colourways) and `src/data/*.ts` (everything else) — no database/API
+- Client-side routing via `src/router.tsx` (History API); `vercel.json` rewrites all paths to `index.html`
 - Deployed on Vercel
 
+## Design System (Y2K skeuomorphism)
+- Reusable surface classes live in `src/index.css` inside `@layer components`, so Tailwind utilities can override them:
+  `.panel` (piano-black gloss), `.glass` (frosted acrylic), `.chrome-rim` (chrome bezel wrapper), `.metal` (brushed aluminium),
+  `.lcd` / `.lcd-text` / `.lcd-input` (backlit LCD), `.gel` / `.gel-chrome` / `.gel-black` (candy buttons), `.key` + `.is-on` (physical keys),
+  `.holo` (holographic sticker), `.app-icon`, `.led`, `.screw`, `.well`, `.groove`, `.chrome-text`, `.accent-text`, `.umd*`, `.shelf-pad`.
+- Accent colour = CSS vars `--accent`, `--accent-rgb`, `--accent-hi`, `--accent-lo`, set by `ThemeProvider` from the 12 XMB month colours (`src/theme.tsx`).
+- Fonts: NewRodin (PSP system font; served as `public/fonts/NewRodinProEB-latin.woff2`, a Latin subset of the .otf), Space Grotesk (body),
+  JetBrains Mono (labels), VT323 (LCD). The NewRodin `@font-face` excludes its full-width punctuation via `unicode-range`.
+- Primitives in `src/components/ui.tsx`: Panel, Screws, SectionHeader, PageHero, Container, Meter, TiltCard, LCDStat, Reveal, FaceGlyph.
+
 ## Key Files
-- `src/App.tsx` — Main app: nav bar, filters (model/color/type), view mode toggle (timeline/grid), detail modal
-- `src/data.ts` — All PSP model/color data (PSPModel type, pspData array)
-- `src/components/TimelineView.tsx` — Chronological timeline view
-- `src/components/GridView.tsx` — Dense grid view of all colors
-- `src/components/CentralObject.tsx` — 3D hover detail view for modal
-- `src/components/OrbitBackground.tsx` — Legacy background animation (unused, replaced by XMB video)
-- `src/components/WaveBackground.tsx` — Legacy background animation (unused)
-- `src/components/MiniPSP.tsx` — CSS-drawn mini PSP icon
-- `index.html` — Entry point with OG/Twitter meta tags
-- `vite.config.ts` — Vite config with Tailwind plugin, GEMINI_API_KEY env (not actively used)
+- `src/App.tsx` — shell (XMB background, Nav, Footer) and route table
+- `src/components/PSPDevice.tsx` + `psp-device.css` — CSS PSP-1000 with a working XMB menu (keyboard, d-pad, swipe, draggable nub). Menu items live in the `XMB` array.
+- `src/components/XMBBackground.tsx` — WebGL XMB waves tinted with the accent; renders at 60% resolution and pauses when the tab is hidden
+- `src/components/Nav.tsx` — nav, XMB theme picker, sound toggle, mobile app-icon menu
+- `src/components/ColorCard.tsx`, `UMD.tsx` — colourway card and CSS UMD disc
+- `src/lib/catalog.ts` — flattened `colorways` list (images from the blob manifest, colour families)
+- `src/data/models.ts` — specs, releases, prices, boards, ratings, region codes, accessories
+- `src/data/history.ts`, `games.ts`, `firmware.ts`, `scene.ts`, `guide.ts` — page content
+- `src/pages/*` — one file per route
+- `src/sound.ts` — WebAudio UI blips (off by default)
+
+## Routes
+`/`, `/colors` (`?model=&type=&family=&q=`), `/colors/:model/:slug`, `/models`, `/models/:id`, `/compare`,
+`/history` (`#reveal|launch|slim|go|twilight|afterlife`), `/games` (`?tag=`), `/firmware`, `/homebrew`, `/guide` (`#decoder|checklist|faq`)
 
 ## Data Model
 PSPModel: { id, name, year, description, colors[] }
 Color: { name, hex, type('standard'|'limited'), imageUrl?, backImageUrl?, description }
 Models: PSP-1000 (2004), PSP-2000 (2007), PSP-3000 (2008), PSP Go (2009), PSP Street (2011)
+ModelInfo (`src/data/models.ts`) uses the same ids and adds specs, releases, prices and ratings.
 
 ## Vercel Blob Storage & Image Pipeline
 - Token in `.env` (gitignored) as `BLOB_READ_WRITE_TOKEN`
@@ -41,7 +57,7 @@ Models: PSP-1000 (2004), PSP-2000 (2007), PSP-3000 (2008), PSP Go (2009), PSP St
 - `src/components/XMBBackground.tsx` — WebGL shader recreation of PSP XMB wave animation
 - Pure GPU-rendered via fragment shader, no external assets needed
 - Based on https://github.com/fchavonet/creative_coding-xmb_wave_background
-- Renders in light mode (white background with dark wave ribbons)
+- Dark base with ribbons tinted by the current XMB accent colour
 - Old video files still in blob (`assets/xmb-bg.webm`, `assets/xmb-bg.mp4`) but no longer used
 
 ### Scripts
@@ -52,7 +68,7 @@ Models: PSP-1000 (2004), PSP-2000 (2007), PSP-3000 (2008), PSP Go (2009), PSP St
 
 ### Manifest & Gallery
 - `src/blob-manifest.json` — auto-generated map of `{modelId}/{colorSlug}` → `string[]` of blob URLs
-- `src/components/ImageGallery.tsx` — gallery component used in detail modal (arrows + thumbnails)
+- Colourway pages (`src/pages/ColorDetail.tsx`) show front/back from the manifest; extra images appear under "From the archive"
 - `src/utils.ts` — slugify() helper shared between app and scripts
 
 ## Running Locally
@@ -61,6 +77,8 @@ Models: PSP-1000 (2004), PSP-2000 (2007), PSP-3000 (2008), PSP Go (2009), PSP St
 `.env` with `BLOB_READ_WRITE_TOKEN` needed for blob operations.
 
 ## Rules
+- Content accuracy matters: only add facts you can source; prefer month-level dates when unsure
+- The homebrew page is descriptive only — never link to firmware, exploits or game downloads
 - Use pnpm (not npm)
 - Never commit unless explicitly asked
 - Never open a terminal to run pnpm dev (user has one running)
