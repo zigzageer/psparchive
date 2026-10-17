@@ -5,13 +5,14 @@ import { XMB_THEMES, useTheme } from '../../theme';
 import { setSoundEnabled, sfx } from '../../sound';
 import { XMBScreen, useXMBController, type XMBController, type Dir } from '../xmb';
 import {
-  FRONT, bodyGeometry, shoulderGeometry, dpadKeyGeometry, pillGeometry, faceButtonGeometry, nubGeometry, diamondShape,
+  FRONT, DPAD_KEY_OFFSET, bodyGeometry, shoulderGeometry, strapHookGeometry, dpadKeyGeometry, pillGeometry, faceButtonGeometry,
+  nubGeometry, diamondShape,
   facePrintTexture, glyphTexture, capLabelTexture, knurlTexture,
 } from './geometry';
 
 /* The five PSP-1000 launch-era finishes. */
 export const FINISHES = [
-  { name: 'Piano Black', body: '#040405', metal: 0, rough: 0.1, keys: '#141519', ink: '#c9ced6', dark: '#16171b', well: '#000000', shoulder: '#c9ced5' },
+  { name: 'Piano Black', body: '#040405', metal: 0, rough: 0.1, keys: '#0b0b0d', ink: '#c9ced6', dark: '#16171b', well: '#000000', shoulder: '#c9ced5' },
   { name: 'Ceramic White', body: '#eceef1', metal: 0, rough: 0.2, keys: '#e2e5e9', ink: '#59606b', dark: '#b9bec6', well: '#d4d8dd', shoulder: '#cfd3d9' },
   { name: 'Metallic Blue', body: '#2149b8', metal: 0.35, rough: 0.28, keys: '#163486', ink: '#d9e2f5', dark: '#0e2463', well: '#0c1d4f', shoulder: '#c2c8d1' },
   { name: 'Pink', body: '#f0a2c0', metal: 0.05, rough: 0.24, keys: '#ec9bba', ink: '#7a4659', dark: '#c27d97', well: '#d98aa8', shoulder: '#dde0e4' },
@@ -22,11 +23,14 @@ type Finish = (typeof FINISHES)[number];
 // Feature positions (mm), measured from the reference photo
 const P = {
   screen: { x: 0.6, y: 1.1, w: 99, h: 56, aw: 95, ah: 53.9 },
-  dpad: { x: -66.1, y: 2.5, r: 13.1, off: 7.9 },
+  dpad: { x: -66.1, y: 2.5, r: 12.9, off: DPAD_KEY_OFFSET },
   face: { x: 67.2, y: 2.5, off: 10.3, plate: 15.8 },
   nub: { x: -65.5, y: -20.5, well: 6.8 },
   row: -32.4,
 };
+
+// `?pose=front` renders the device straight-on with a near-orthographic camera (for comparing with photos)
+const FRONT_POSE = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('pose') === 'front';
 
 const HTML_W = 960; // CSS px of the XMB element; 95 mm wide in the scene
 const HTML_H = Math.round((HTML_W * P.screen.ah) / P.screen.aw);
@@ -43,13 +47,13 @@ function studioScene() {
     m.rotateZ(roll);
     s.add(m);
   };
-  box(12, 3, [0, 6, 3], 6); // overhead softbox → top-edge highlight
-  box(3, 9, [-8, 1, 2.5], 4); // key strip, left
-  box(2, 8, [8, 0, 2], 2.4, '#dfe8ff'); // fill strip, right
-  box(16, 2, [0, -6, 4], 0.8); // floor bounce
+  box(12, 3, [0, 6, 3], 3.2); // overhead softbox → top-edge highlight
+  box(3, 9, [-8, 1, 2.5], 2.0); // key strip, left
+  box(2, 8, [8, 0, 2], 1.1, '#dfe8ff'); // fill strip, right
+  box(16, 2, [0, -6, 4], 0.35); // floor bounce
   box(18, 12, [0, 0, 10], 0.22); // very dim front fill — a hint of sheen without greying the black
-  box(1.1, 16, [-2.2, -1.2, 9], 5, '#ffffff', 0.5); // narrow diagonal strip → the classic streak across the face
-  box(0.5, 16, [1.4, -1.6, 9], 2.2, '#ffffff', 0.5); // thinner second streak
+  box(0.7, 16, [-2.2, -1.2, 9], 2.6, '#ffffff', 0.5); // narrow diagonal strip → the classic streak across the face
+  box(0.35, 16, [1.4, -1.6, 9], 1.2, '#ffffff', 0.5); // thinner second streak
   return s;
 }
 
@@ -72,13 +76,14 @@ function FitCamera() {
   const { camera, size } = useThree();
   useEffect(() => {
     const cam = camera as THREE.PerspectiveCamera;
+    if (FRONT_POSE) cam.fov = 3;
     const v = THREE.MathUtils.degToRad(cam.fov) / 2;
     const aspect = size.width / size.height;
     const needW = 196;
     const needH = 92;
     const d = Math.max(needH / 2 / Math.tan(v), needW / 2 / (Math.tan(v) * aspect));
     cam.position.set(0, 0, d);
-    cam.near = d - 200;
+    cam.near = Math.max(1, d - 200);
     cam.far = d + 400;
     cam.updateProjectionMatrix();
   }, [camera, size]);
@@ -149,7 +154,7 @@ function useMaterials(f: Finish) {
       roughness: f.rough,
       clearcoat: 1,
       clearcoatRoughness: 0.035,
-      envMapIntensity: 1.05,
+      envMapIntensity: 0.9,
     });
     const keys = new THREE.MeshPhysicalMaterial({
       color: f.keys,
@@ -161,8 +166,8 @@ function useMaterials(f: Finish) {
     // recesses: matte and barely reflective so the glossy keys stand out against them
     const well = new THREE.MeshStandardMaterial({ color: f.well, roughness: 0.9, metalness: 0, envMapIntensity: 0.06 });
     const nub = new THREE.MeshStandardMaterial({
-      color: f.name === 'Piano Black' ? '#3b3e45' : f.keys,
-      roughness: 0.78,
+      color: f.name === 'Piano Black' ? '#2a2c30' : f.keys,
+      roughness: 0.7,
       metalness: 0,
       envMapIntensity: 0.6,
     });
@@ -186,8 +191,8 @@ function useTextures(f: Finish, fontsReady: boolean) {
       arrow: glyphTexture('up', f.ink),
       knurl: knurlTexture(),
       home: k('HOME', 10.1, 4.6),
-      minus: k('−', 5.9, 4.6),
-      plus: k('+', 5.9, 4.6),
+      minus: k('−', 5.4, 5.0),
+      plus: k('+', 5.4, 5.0),
       display: k('display', 6.4, 4.4),
       note: k('note', 6.1, 4.4),
       select: k('SELECT', 10.7, 4.6),
@@ -230,9 +235,10 @@ function Model({
       face: faceButtonGeometry(),
       nub: nubGeometry(),
       diamond: new THREE.ShapeGeometry(diamondShape(P.face.plate, 5), 12),
-      diamondRim: new THREE.ShapeGeometry(diamondShape(P.face.plate + 0.6, 5.3), 12),
+      diamondRim: new THREE.ShapeGeometry(diamondShape(P.face.plate + 0.4, 5.2), 12),
+      strap: strapHookGeometry(),
       home: pillGeometry(10.1, 4.6),
-      small: pillGeometry(5.9, 4.6),
+      small: pillGeometry(5.4, 5.0),
       disp: pillGeometry(6.4, 4.4),
       wide: pillGeometry(10.7, 4.6),
       start: pillGeometry(10.1, 4.6),
@@ -266,6 +272,12 @@ function Model({
   useFrame((state, dt) => {
     const g = group.current;
     if (!g) return;
+    if (FRONT_POSE) {
+      g.rotation.set(0, 0, 0);
+      g.position.set(0, 0, 0);
+      g.scale.setScalar(1);
+      return;
+    }
     if (start.current === null) start.current = state.clock.elapsedTime;
     const age = state.clock.elapsedTime - start.current;
     const intro = reduced ? 0 : Math.max(0, 1 - age / 1.6);
@@ -273,7 +285,7 @@ function Model({
     // hero pose: slightly turned and seen from a touch above, then follow the pointer
     const time = state.clock.elapsedTime;
     const idle = reduced || performance.now() - lastMouse.current < 4000 ? 0 : 1;
-    const ty = -0.14 + pointer.current.x * 0.28 + idle * Math.sin(time * 0.45) * 0.12 - ease * 0.9;
+    const ty = -0.14 + pointer.current.x * 0.28 + idle * Math.sin(time * 0.45) * 0.07 - ease * 0.9;
     const tx = 0.11 + pointer.current.y * 0.14 + idle * Math.sin(time * 0.31) * 0.04 + ease * 0.25;
     g.rotation.y = THREE.MathUtils.damp(g.rotation.y, ty, 4, dt);
     g.rotation.x = THREE.MathUtils.damp(g.rotation.x, tx, 4, dt);
@@ -330,8 +342,8 @@ function Model({
     nubTarget.current = { x: 0, y: 0 };
   };
 
-  const glyph = (map: THREE.Texture, size: number, z: number, rot = 0) => (
-    <mesh position={[0, 0, z]} rotation={[0, 0, rot]} renderOrder={2}>
+  const glyph = (map: THREE.Texture, size: number, z: number, y = 0) => (
+    <mesh position={[0, y, z]} renderOrder={2}>
       <planeGeometry args={[size, size]} />
       <meshBasicMaterial map={map} transparent depthWrite={false} color="#e6e8ec" />
     </mesh>
@@ -374,6 +386,9 @@ function Model({
         <mesh geometry={geo.shR} material={m.silver} />
       </Key>
 
+      {/* silver wrist-strap holder, bottom-left corner */}
+      <mesh geometry={geo.strap} material={m.silver} />
+
       {/* printed details */}
       <mesh position={[0, 0, Z + 0.03]} renderOrder={1}>
         <planeGeometry args={[170, 74]} />
@@ -403,7 +418,7 @@ function Model({
         {dpad.map(([d, x, y, rot]) => (
           <Key key={d} id={d} ctl={ctl} position={[x, y, Z + 0.55]} rotation={rot} onPress={() => ctl.move(d)}>
             <mesh geometry={geo.dkey} material={m.keys} />
-            {glyph(t.arrow, 3.4, 1.66, 0)}
+            {glyph(t.arrow, 6.2, 1.72, 1.0)}
           </Key>
         ))}
       </group>
@@ -411,11 +426,21 @@ function Model({
       {/* face buttons on their diamond plate */}
       <group position={[P.face.x, P.face.y, 0]}>
         <mesh geometry={geo.diamondRim} position={[0, 0, Z + 0.006]} material={m.rim} />
-        <mesh geometry={geo.diamond} position={[0, 0, Z + 0.012]} material={m.well} />
+        <mesh geometry={geo.diamond} position={[0, 0, Z + 0.012]} material={m.body} />
+        {faces.map((f) => (
+          <group key={`well-${f.id}`} position={[f.x, f.y, 0]}>
+            <mesh position={[0, 0, Z + 0.02]} material={m.well}>
+              <circleGeometry args={[4.95, 48]} />
+            </mesh>
+            <mesh position={[0, 0, Z + 0.06]} material={m.keys}>
+              <torusGeometry args={[4.95, 0.26, 10, 72]} />
+            </mesh>
+          </group>
+        ))}
         {faces.map((f) => (
           <Key key={f.id} id={f.id} ctl={ctl} position={[f.x, f.y, Z]} onPress={f.act}>
             <mesh geometry={geo.face} material={m.keys} />
-            {glyph(f.map, 4.4, 2.44)}
+            {glyph(f.map, 7, 2.45)}
           </Key>
         ))}
       </group>
@@ -437,9 +462,9 @@ function Model({
           onPointerOver={() => setCursor(true)}
           onPointerOut={() => setCursor(false)}
         />
-        <mesh position={[0, 0, 1.44]} renderOrder={2}>
-          <circleGeometry args={[4.6, 48]} />
-          <meshStandardMaterial map={t.knurl} transparent depthWrite={false} roughness={0.8} />
+        <mesh position={[0, 0, 1.44]}>
+          <circleGeometry args={[4.7, 56]} />
+          <meshStandardMaterial map={t.knurl} roughness={0.72} envMapIntensity={0.5} />
         </mesh>
       </group>
 
@@ -460,11 +485,11 @@ function Model({
       </Key>
       <Key id="vol-" ctl={ctl} position={[-34.6, row, Z + 0.45]} onPress={() => { ctl.press('vol-'); actions.sound(false); }}>
         <mesh geometry={geo.small} material={m.keys} />
-        {capLabel(t.minus, 5.9, 4.6)}
+        {capLabel(t.minus, 5.4, 5.0)}
       </Key>
       <Key id="vol+" ctl={ctl} position={[-23.2, row, Z + 0.45]} onPress={() => { ctl.press('vol+'); actions.sound(true); }}>
         <mesh geometry={geo.small} material={m.keys} />
-        {capLabel(t.plus, 5.9, 4.6)}
+        {capLabel(t.plus, 5.4, 5.0)}
       </Key>
       <Key id="disp" ctl={ctl} position={[19.0, row, Z + 0.45]} onPress={() => { ctl.press('disp'); actions.nextTheme(); }}>
         <mesh geometry={geo.disp} material={m.keys} />

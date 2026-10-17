@@ -69,40 +69,59 @@ export function bodyGeometry() {
 }
 
 /**
- * Silver L/R shoulder caps that wrap the top corners. Built from the outline segment between the
- * top edge (x ≈ −55) and the side (y ≈ 29), thickened inwards — thickest at the corner, like the real part.
+ * A silver band that hugs part of the outline (used for the L/R shoulders and the strap hook).
+ * `pick` selects the outline points, `sortAsc` orders them along the CCW outline, `thickAt(t)` gives the
+ * band thickness from start (t=0) to end (t=1).
  */
-export function shoulderGeometry(side: 'l' | 'r') {
-  const all = outlinePoints(520);
-  const inCorner = (p: THREE.Vector2) => p.x < -54.5 && p.y > 28.5;
-  // outline runs CCW, so within the corner it goes from the top edge (x ≈ −55) towards the side
-  const seg = all.filter(inCorner).sort((a, b) => b.x - a.x);
+function cornerBand(pick: (p: THREE.Vector2) => boolean, sortAsc: boolean, thickAt: (t: number) => number, depth: number, mirrorX: boolean) {
+  const all = outlinePoints(620);
+  const seg = all.filter(pick).sort((a, b) => (sortAsc ? a.x - b.x : b.x - a.x));
   const n = seg.length;
   const bevel = 0.7;
   const outer: THREE.Vector2[] = [];
   const inner: THREE.Vector2[] = [];
   seg.forEach((p, i) => {
     const t = i / (n - 1);
-    const thick = 2.4 + Math.sin(t * Math.PI) * 2.4 + t * 0.5; // 2.4 at the top end → ~4.8 at the corner → 2.9
     const tan = new THREE.Vector2().subVectors(seg[Math.min(n - 1, i + 1)], seg[Math.max(0, i - 1)]).normalize();
     const inward = new THREE.Vector2(-tan.y, tan.x); // inward normal for a CCW outline
     // the extrude bevel grows the shape by `bevel`, so pre-shrink both edges
     outer.push(p.clone().addScaledVector(inward, bevel - 0.35));
-    inner.push(p.clone().addScaledVector(inward, thick - bevel));
+    inner.push(p.clone().addScaledVector(inward, thickAt(t) - bevel));
   });
   let ring = [...outer, ...inner.reverse()];
-  if (side === 'r') ring = ring.map((p) => new THREE.Vector2(-p.x, p.y)); // ExtrudeGeometry fixes the winding
-  const depth = 17;
+  if (mirrorX) ring = ring.map((p) => new THREE.Vector2(-p.x, p.y)); // ExtrudeGeometry fixes the winding
   const g = new THREE.ExtrudeGeometry(new THREE.Shape(ring), {
     depth,
     bevelEnabled: true,
     bevelThickness: 0.9,
-    bevelSize: 0.7,
+    bevelSize: bevel,
     bevelSegments: 5,
     curveSegments: 1,
   });
   g.translate(0, 0, FRONT + 0.1 - depth - 0.9); // front sits just proud of the face
   return smooth(g);
+}
+
+/** Silver L/R shoulder buttons wrapping the top corners — thickest at the corner, like the real part. */
+export function shoulderGeometry(side: 'l' | 'r') {
+  return cornerBand(
+    (p) => p.x < -54.5 && p.y > 28.5,
+    false, // CCW runs from the top edge (x ≈ −55) towards the side
+    (t) => 2.4 + Math.sin(t * Math.PI) * 2.4 + t * 0.5,
+    17,
+    side === 'r',
+  );
+}
+
+/** The silver wrist-strap holder on the bottom-left corner. */
+export function strapHookGeometry() {
+  return cornerBand(
+    (p) => p.x < -58 && p.y < -31,
+    true, // CCW runs from the side towards the bottom edge
+    (t) => 1.7 + Math.sin(t * Math.PI) * 1.5,
+    9,
+    false,
+  );
 }
 
 /** Rounded polygon helper (corner radius r). */
@@ -123,21 +142,33 @@ function roundedPoly(points: [number, number][], r: number) {
   return s;
 }
 
-/** One d-pad arrow key, pointing up (tip towards −y, i.e. the d-pad centre). 8.0 × 8.4 mm. */
+/**
+ * One d-pad arrow key, pointing up. Local origin = key centre, which sits 7.9 mm from the d-pad centre.
+ * Measured: 7.8 mm wide, outer end on a 12 mm radius (follows the well), tip 4 mm from the centre.
+ */
+export const DPAD_KEY_OFFSET = 7.9;
 export function dpadKeyGeometry() {
-  const w = 7.6;
-  const l = 8.0;
-  const shape = roundedPoly(
-    [
-      [-w / 2, l / 2],
-      [-w / 2, -l / 2 + 2.9],
-      [0, -l / 2],
-      [w / 2, -l / 2 + 2.9],
-      [w / 2, l / 2],
-    ],
-    1.4,
-  );
-  const g = new THREE.ExtrudeGeometry(shape, { depth: 1.1, bevelEnabled: true, bevelThickness: 0.55, bevelSize: 0.5, bevelSegments: 5, curveSegments: 6 });
+  const bevel = 0.5;
+  const R = 12.0 - bevel;
+  const hw = 4.05 - bevel;
+  const c = DPAD_KEY_OFFSET;
+  const sideEnd = 6.1;
+  const tip = 3.55 + bevel;
+  const a = Math.asin(hw / R);
+  const pts: [number, number][] = [];
+  for (let i = 0; i <= 8; i++) {
+    const th = a - (2 * a * i) / 8; // right → left along the outer arc
+    pts.push([R * Math.sin(th), R * Math.cos(th) - c]);
+  }
+  pts.push([-hw, sideEnd - c], [0, tip - c], [hw, sideEnd - c]);
+  const g = new THREE.ExtrudeGeometry(roundedPoly(pts, 0.9), {
+    depth: 1.1,
+    bevelEnabled: true,
+    bevelThickness: 0.6,
+    bevelSize: bevel,
+    bevelSegments: 6,
+    curveSegments: 6,
+  });
   return smooth(g);
 }
 
@@ -206,7 +237,7 @@ function tex(c: HTMLCanvasElement) {
   return t;
 }
 
-/** Everything printed or moulded flat on the front: labels, logo, LED icons, grille, speakers. */
+/** Everything printed or moulded flat on the front: logos, labels, LED icons, grille, speakers. */
 export function facePrintTexture(ink: string, dark: string) {
   const W = 170 * PX;
   const H = 74 * PX;
@@ -214,21 +245,19 @@ export function facePrintTexture(ink: string, dark: string) {
   const g = c.getContext('2d')!;
   const X = (x: number) => (x + 85) * PX;
   const Y = (y: number) => (37 - y) * PX;
-  g.fillStyle = ink;
-  g.strokeStyle = ink;
   g.textBaseline = 'middle';
 
   // top grille (perforated strip between the shoulders)
-  g.fillStyle = dark;
-  for (let x = -53.5; x <= 53.5; x += 0.9) {
+  g.fillStyle = '#3a3d44';
+  for (let x = -54.5; x <= 54.5; x += 0.8) {
     for (let row = 0; row < 3; row++) {
       g.beginPath();
-      g.arc(X(x + (row % 2) * 0.45), Y(34.3 - row * 0.55), 0.22 * PX, 0, Math.PI * 2);
+      g.arc(X(x + (row % 2) * 0.4), Y(34.35 - row * 0.5), 0.2 * PX, 0, Math.PI * 2);
       g.fill();
     }
   }
 
-  // speaker grilles under the d-pad and face buttons
+  // speaker holes under the d-pad and the face buttons
   for (const sx of [-55.9, 56.3]) {
     for (let i = -2; i <= 2; i++)
       for (let j = -1; j <= 1; j++) {
@@ -240,11 +269,56 @@ export function facePrintTexture(ink: string, dark: string) {
 
   g.fillStyle = ink;
   g.strokeStyle = ink;
-  // POWER / HOLD
-  g.font = `600 ${1.55 * PX}px "Space Grotesk", sans-serif`;
+
+  // PS logo (top left): tall P with a flattened S across its foot
+  g.save();
+  g.beginPath();
+  g.rect(X(-74.5), Y(25.3), 1.07 * PX, 3.7 * PX); // stem
+  g.fill();
+  g.beginPath();
+  g.moveTo(X(-73.45), Y(25.3));
+  g.bezierCurveTo(X(-71.0), Y(25.3), X(-70.6), Y(23.1), X(-73.45), Y(23.15));
+  g.closePath();
+  g.fill();
+  g.fillStyle = dark;
+  g.beginPath();
+  g.ellipse(X(-72.55), Y(24.25), 0.45 * PX, 0.5 * PX, 0, 0, Math.PI * 2);
+  g.fill();
+  g.fillStyle = ink;
+  g.translate(X(-73.6), Y(22.2));
+  g.transform(1, 0, -0.55, 0.36, 0, 0);
+  g.font = `900 ${4.3 * PX}px "Arial Black", "Space Grotesk", sans-serif`;
+  g.textAlign = 'center';
+  g.fillText('S', 0, 0);
+  g.restore();
+
+  // SONY wordmark (top right)
+  g.save();
+  g.font = `700 ${4.35 * PX}px Georgia, "Times New Roman", serif`;
+  g.textAlign = 'center';
+  const sw = g.measureText('SONY').width;
+  g.translate(X(64.5), Y(26.75));
+  g.scale((13.8 * PX) / (sw + 1.8 * PX), 1);
+  try {
+    (g as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = `${0.6 * PX}px`;
+  } catch {
+    /* older canvas */
+  }
+  g.fillText('SONY', 0, 0.12 * PX);
+  g.restore();
+
+  // POWER / HOLD with their indicator dots
+  g.font = `600 ${1.5 * PX}px "Space Grotesk", Arial, sans-serif`;
   g.textAlign = 'right';
-  g.fillText('POWER', X(79.2), Y(-15.5));
-  g.fillText('HOLD', X(76.0), Y(-22.0));
+  g.fillText('POWER', X(78.4), Y(-15.6));
+  g.fillText('HOLD', X(76.2), Y(-22.1));
+  g.fillStyle = dark;
+  for (const [x, y] of [[80.0, -15.6], [77.8, -22.1]]) {
+    g.beginPath();
+    g.arc(X(x), Y(y), 0.42 * PX, 0, Math.PI * 2);
+    g.fill();
+  }
+  g.fillStyle = ink;
 
   // LED icons (power, WLAN)
   g.lineWidth = 0.18 * PX;
@@ -263,19 +337,27 @@ export function facePrintTexture(ink: string, dark: string) {
 
   // VOL
   g.textAlign = 'center';
-  g.font = `700 ${1.55 * PX}px "Space Grotesk", sans-serif`;
+  g.font = `700 ${1.5 * PX}px "Space Grotesk", Arial, sans-serif`;
   g.fillText('VOL', X(-29.0), Y(-32.6));
 
-  // PSP logotype, outlined like the real one
+  // PSP logotype — thin upright strokes, traced from the photo (origin = top-left of the mark)
   g.save();
-  g.translate(X(0.2), Y(-32.6));
-  g.transform(1.45, 0, -0.21 * 1.45, 1, 0, 0);
-  g.font = `800 ${4.6 * PX}px "NewRodin", "Space Grotesk", sans-serif`;
-  g.lineWidth = 0.22 * PX;
-  g.strokeText('PSP', 0, 0.2 * PX);
+  g.translate(X(-10.71), Y(-31.68));
+  g.scale(PX, PX);
+  g.lineWidth = 0.24;
+  g.lineJoin = 'miter';
+  g.lineCap = 'butt';
+  const pl = (pts: [number, number][]) => {
+    g.beginPath();
+    pts.forEach(([u, v], i) => (i ? g.lineTo(u, v) : g.moveTo(u, v)));
+    g.stroke();
+  };
+  pl([[0, 0], [6.29, 0], [6.29, 1.47], [0.15, 1.47], [0.15, 3.16]]); // P
+  pl([[7.05, 3.16], [10.58, 3.16], [10.58, 0.09], [13.8, 0.09]]); // S
+  pl([[15.18, 0.09], [21.62, 0.09], [21.62, 1.63], [15.03, 1.63], [15.03, 3.16]]); // P
   g.restore();
 
-  // thin rim around the d-pad well (the photo shows a light catch on the lower right)
+  // light catch on the lower-right lip of the d-pad well, as in the photo
   g.lineWidth = 0.22 * PX;
   g.globalAlpha = 0.35;
   g.beginPath();
@@ -285,37 +367,37 @@ export function facePrintTexture(ink: string, dark: string) {
   return tex(c);
 }
 
-/** Face-button symbol, drawn as a light outline on transparent. */
+/** Face-button / d-pad symbol, drawn as a light outline on transparent (meant for a 7 mm plane). */
 export function glyphTexture(kind: 'tri' | 'cir' | 'crs' | 'sqr' | 'up', ink: string) {
   const S = 256;
   const c = canvas(S, S);
   const g = c.getContext('2d')!;
   g.strokeStyle = ink;
-  g.lineWidth = 14;
-  g.lineJoin = 'round';
-  g.lineCap = 'round';
+  g.lineWidth = 15;
+  g.lineJoin = 'miter';
+  g.lineCap = 'butt';
   const m = S / 2;
   g.beginPath();
   if (kind === 'tri') {
-    g.moveTo(m, m - 62);
-    g.lineTo(m + 66, m + 50);
-    g.lineTo(m - 66, m + 50);
+    g.moveTo(m, m - 78);
+    g.lineTo(m + 88, m + 66);
+    g.lineTo(m - 88, m + 66);
     g.closePath();
   } else if (kind === 'cir') {
-    g.arc(m, m, 58, 0, Math.PI * 2);
+    g.arc(m, m, 76, 0, Math.PI * 2);
   } else if (kind === 'crs') {
-    g.moveTo(m - 52, m - 52);
-    g.lineTo(m + 52, m + 52);
-    g.moveTo(m + 52, m - 52);
-    g.lineTo(m - 52, m + 52);
+    g.moveTo(m - 62, m - 62);
+    g.lineTo(m + 62, m + 62);
+    g.moveTo(m + 62, m - 62);
+    g.lineTo(m - 62, m + 62);
   } else if (kind === 'sqr') {
-    g.rect(m - 52, m - 52, 104, 104);
+    g.rect(m - 60, m - 60, 120, 120);
   } else {
-    // d-pad arrow: small outlined triangle pointing up
-    g.lineWidth = 12;
-    g.moveTo(m, m - 46);
-    g.lineTo(m + 56, m + 40);
-    g.lineTo(m - 56, m + 40);
+    // d-pad: outlined triangle pointing outwards
+    g.lineWidth = 17;
+    g.moveTo(m, m - 64);
+    g.lineTo(m + 74, m + 56);
+    g.lineTo(m - 74, m + 56);
     g.closePath();
   }
   g.stroke();
@@ -351,19 +433,25 @@ export function capLabelTexture(label: string, wmm: number, hmm: number, ink: st
   return tex(c);
 }
 
-/** Knurled dot pattern for the analog nub top (as a colour/alpha overlay). */
+/** Analog-nub top: dark grey with a grid of small raised dots catching the light. */
 export function knurlTexture() {
   const S = 256;
   const c = canvas(S, S);
   const g = c.getContext('2d')!;
-  g.fillStyle = 'rgba(8,9,11,0.9)';
-  for (let y = 6; y < S; y += 12) {
-    for (let x = 6 + ((y / 12) % 2) * 6; x < S; x += 12) {
+  g.fillStyle = '#26282c';
+  g.fillRect(0, 0, S, S);
+  const step = 14;
+  for (let y = step / 2, row = 0; y < S; y += step, row++) {
+    for (let x = step / 2 + (row % 2) * (step / 2); x < S; x += step) {
+      const grad = g.createRadialGradient(x - 1.5, y - 1.5, 0.5, x, y, 5);
+      grad.addColorStop(0, '#8a8e95');
+      grad.addColorStop(0.55, '#4a4d53');
+      grad.addColorStop(1, 'rgba(38,40,44,0)');
+      g.fillStyle = grad;
       g.beginPath();
-      g.arc(x, y, 3.2, 0, Math.PI * 2);
+      g.arc(x, y, 5, 0, Math.PI * 2);
       g.fill();
     }
   }
-  const t = tex(c);
-  return t;
+  return tex(c);
 }

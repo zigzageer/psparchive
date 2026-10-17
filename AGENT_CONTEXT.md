@@ -29,6 +29,8 @@ Interactive visual archive of every PSP (PlayStation Portable) model and color v
   - The XMB DOM is mapped onto the screen by `ScreenProjector` (CSS3DRenderer-style matrix3d). drei `<Html>` is not used,
     because its separate React root gets wiped by React 19 StrictMode double-mounting.
   - Shell finishes are in `FINISHES`. Bottom-row keys: SELECT = next shell, ◐ = next XMB theme, VOL± / ♪ = sound, START = open.
+  - Accuracy check: open `/?pose=front` for a straight-on, near-orthographic render, then overlay it on the photo at the same
+    px/mm (the canvas fits 196 mm across). The printed layer (SONY, PS logo, PSP logotype, labels) lives in `facePrintTexture`.
 - `src/components/xmb.tsx` — XMB menu data (`XMB`), `useXMBController` (state, keyboard) and `XMBScreen`, shared by the 3D and CSS devices
 - `src/components/PSPDevice.tsx` + `psp-device.css` — flat CSS PSP, shown while the 3D chunk loads and when WebGL is unavailable
 - `src/components/XMBBackground.tsx` — WebGL XMB waves tinted with the accent; renders at 60% resolution and pauses when the tab is hidden
