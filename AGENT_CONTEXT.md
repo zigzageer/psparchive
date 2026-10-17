@@ -4,7 +4,7 @@
 Interactive visual archive of every PSP (PlayStation Portable) model and color variation ever released. Hosted at psp.quest.
 
 ## Tech Stack
-- React 19 + Vite + Tailwind CSS v4 + Motion (`motion/react`) + Lucide icons
+- React 19 + Vite + Tailwind CSS v4 + Motion (`motion/react`) + Lucide icons + three.js / @react-three/fiber (hero only)
 - Static data in `src/data.ts` (colourways) and `src/data/*.ts` (everything else) — no database/API
 - Client-side routing via `src/router.tsx` (History API); `vercel.json` rewrites all paths to `index.html`
 - Deployed on Vercel
@@ -21,7 +21,18 @@ Interactive visual archive of every PSP (PlayStation Portable) model and color v
 
 ## Key Files
 - `src/App.tsx` — shell (XMB background, Nav, Footer) and route table
-- `src/components/PSPDevice.tsx` + `psp-device.css` — CSS PSP-1000 with a working XMB menu (keyboard, d-pad, swipe, draggable nub). Menu items live in the `XMB` array.
+- `src/components/psp3d/PSP3D.tsx` — the hero: a three.js / React Three Fiber PSP-1000, lazy-loaded from `pages/Home.tsx`.
+  - Geometry in `psp3d/geometry.ts`, in mm (170 × 74 × 23). The outline and feature positions were traced from the Piano Black
+    front photo in the blob store. It builds the body extrusion, shoulder caps, d-pad keys, lathe face buttons and nub, pills,
+    and canvas textures for the printed labels.
+  - Lighting is a custom dark "studio" PMREM environment (softbox planes) plus a couple of lights; tune `studioScene()` for reflections.
+  - The XMB DOM is mapped onto the screen by `ScreenProjector` (CSS3DRenderer-style matrix3d). drei `<Html>` is not used,
+    because its separate React root gets wiped by React 19 StrictMode double-mounting.
+  - Shell finishes are in `FINISHES`. Bottom-row keys: SELECT = next shell, ◐ = next XMB theme, VOL± / ♪ = sound, START = open.
+  - Accuracy check: open `/?pose=front` for a straight-on, near-orthographic render, then overlay it on the photo at the same
+    px/mm (the canvas fits 196 mm across). The printed layer (SONY, PS logo, PSP logotype, labels) lives in `facePrintTexture`.
+- `src/components/xmb.tsx` — XMB menu data (`XMB`), `useXMBController` (state, keyboard) and `XMBScreen`, shared by the 3D and CSS devices
+- `src/components/PSPDevice.tsx` + `psp-device.css` — flat CSS PSP, shown while the 3D chunk loads and when WebGL is unavailable
 - `src/components/XMBBackground.tsx` — WebGL XMB waves tinted with the accent; renders at 60% resolution and pauses when the tab is hidden
 - `src/components/Nav.tsx` — nav, XMB theme picker, sound toggle, mobile app-icon menu
 - `src/components/ColorCard.tsx`, `UMD.tsx` — colourway card and CSS UMD disc

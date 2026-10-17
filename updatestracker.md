@@ -1,5 +1,21 @@
 # Updates Tracker
 
+## 2026-10-17 — 3D PSP accuracy pass
+- Compared a straight-on render (`/?pose=front`) against the reference photo at matching scale and fixed the mismatches
+- D-pad keys rebuilt to measured shape (curved outer end on the 12 mm well, pointed tip 3.5 mm from centre), larger arrow glyphs
+- Face buttons: bigger traced-size symbols, each in a ringed well, on a glossy diamond plate instead of a grey one
+- Added SONY wordmark, PS logo, the real thin upright PSP logotype (traced), POWER/HOLD indicator dots, silver strap holder
+- Knurled grey analog nub, round VOL keys, more visible top grille, softer rim lighting (no outline effect), calmer reflections
+
+## 2026-10-17 — 3D PSP-1000 hero
+- Replaced the flat CSS hero device with a real-time three.js model (React Three Fiber), lazy-loaded so the main bundle is unchanged
+- 1:1 geometry in mm traced from the Piano Black PSP-1000 product photo: outline, screen, d-pad, face buttons, analog nub, bottom row, LEDs, speakers, silver L/R caps
+- Clearcoat piano-black material under a custom studio environment; five launch shells (Piano Black, Ceramic White, Metallic Blue, Pink, Champagne Gold)
+- Live XMB projected onto the 3D screen with CSS3D matrices (drei `<Html>` breaks under React 19 StrictMode)
+- Every key is clickable: d-pad, face buttons, L/R, HOME, VOL±, ◐ (XMB colour), ♪, SELECT (shell), START; the nub can be dragged
+- Mouse-follow tilt on desktop, idle sway on touch, intro spin; respects reduced motion; CSS PSP fallback without WebGL
+- XMB logic moved into `src/components/xmb.tsx` and shared by both devices
+
 ## 2026-10-17 — v2.0: Y2K skeuomorphic redesign + full PSP encyclopedia
 - New design system: piano-black gloss panels, chrome bezels, brushed metal, gel buttons, LCD readouts, holo stickers, physical keys (`src/index.css`, `@layer components`)
 - Hero: CSS-built PSP-1000 with a working XMB menu (arrow keys / d-pad / swipe / draggable nub; ✕ opens, △ random colourway, □ compare) and a boot animation

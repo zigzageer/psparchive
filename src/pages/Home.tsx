@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, ChevronLeft, ChevronRight, Shuffle, Palette, Cpu, GitCompareArrows, Clock, Disc3, Download, Terminal, BookOpen } from 'lucide-react';
 import { PSPDevice } from '../components/PSPDevice';
@@ -10,6 +10,28 @@ import { models } from '../data/models';
 import { games } from '../data/games';
 import { history } from '../data/history';
 import { mix } from '../theme';
+
+// The 3D PSP (three.js) loads on demand; the CSS-drawn PSP stands in while it loads and when WebGL is missing.
+const PSP3D = lazy(() => import('../components/psp3d/PSP3D'));
+
+function hasWebGL() {
+  try {
+    const c = document.createElement('canvas');
+    return !!(c.getContext('webgl2') || c.getContext('webgl'));
+  } catch {
+    return false;
+  }
+}
+
+function HeroDevice() {
+  const [webgl] = useState(hasWebGL);
+  if (!webgl) return <PSPDevice />;
+  return (
+    <Suspense fallback={<PSPDevice />}>
+      <PSP3D />
+    </Suspense>
+  );
+}
 
 const TICKER = [
   'PSP-1000 launched in Japan on 12 Dec 2004 for ¥19,800',
@@ -105,16 +127,9 @@ function Hero() {
           initial={{ opacity: 0, y: 40, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.9, delay: 0.15, ease: [0.2, 0.8, 0.2, 1] }}
-          className="relative mx-auto mt-10 md:mt-14 w-[calc(100%+1.5rem)] -mx-3 sm:mx-auto sm:w-full max-w-[1000px]"
+          className="relative mx-auto mt-6 md:mt-8 w-[calc(100%+1.5rem)] -mx-3 sm:mx-auto sm:w-full max-w-[1120px]"
         >
-          <div className="float">
-            <PSPDevice />
-          </div>
-          <div
-            aria-hidden
-            className="absolute left-1/2 -bottom-10 h-16 w-[80%] -translate-x-1/2 rounded-[50%] blur-2xl"
-            style={{ background: 'radial-gradient(ellipse, rgb(var(--accent-rgb) / 0.45), transparent 70%)' }}
-          />
+          <HeroDevice />
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mt-14 flex flex-col items-center gap-6">
@@ -125,7 +140,9 @@ function Hero() {
             <span className="key !py-1 !px-2 !text-[10px]">↓</span>
             <span className="ml-1 mr-3">browse the XMB</span>
             <span className="key !py-1 !px-2 !text-[10px]">Enter</span>
-            <span className="ml-1">open · click the screen, d-pad or drag the nub</span>
+            <span className="ml-1 mr-3">open</span>
+            <span className="key !py-1 !px-2 !text-[10px]">Select</span>
+            <span className="ml-1">on the PSP changes the shell · drag the nub · ◐ cycles the XMB colour</span>
           </div>
           <div className="sm:hidden text-xs text-[var(--ink-faint)]">Swipe the screen or tap the d-pad to browse</div>
           <div className="flex flex-wrap justify-center gap-3">
