@@ -1,5 +1,16 @@
 # Updates Tracker
 
+## 2026-10-17 — v2.0: Y2K skeuomorphic redesign + full PSP encyclopedia
+- New design system: piano-black gloss panels, chrome bezels, brushed metal, gel buttons, LCD readouts, holo stickers, physical keys (`src/index.css`, `@layer components`)
+- Hero: CSS-built PSP-1000 with a working XMB menu (arrow keys / d-pad / swipe / draggable nub; ✕ opens, △ random colourway, □ compare) and a boot animation
+- XMB month themes: accent colour follows the month (12 colours, picker in the nav, saved in localStorage); WebGL waves tinted to match
+- Client-side router + `vercel.json` rewrites; inner pages are lazy-loaded
+- New pages: Colour Archive (URL filters, search, colour families), colourway showroom pages, Hardware index + 5 model pages (specs, releases, prices, boards, ratings, trivia), Compare (diff mode, to-scale silhouettes), History timeline (eras + category filters), Games (64 UMDs, filters, random pick), Firmware (1.00 → 6.61), Homebrew (scene history, glossary), Buyer’s Guide (model decoder, saved checklist, region codes, FAQ), 404 (error 80020148)
+- Optional synthesised UI sounds (off by default)
+- NewRodin served as a 16 KB Latin WOFF2 subset (was a 3.8 MB OTF); full-width punctuation falls back via `unicode-range`
+- Added `@types/react` / `@types/react-dom` so `pnpm lint` typechecks
+- Removed unused components: GridView, TimelineView, MiniPSP, CentralObject, OrbitBackground, WaveBackground, ImageGallery
+
 ## 2026-04-09 — Larger PSP Grid Cards
 - Increased MiniPSP size from w-32 h-16 to w-44 h-22 (~37% bigger)
 - Reduced grid columns (6→5 at XL, 5→4 at LG, 4→3 at MD) for breathing room

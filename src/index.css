@@ -1,40 +1,634 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=VT323&display=swap');
 @import "tailwindcss";
 
 @font-face {
   font-family: "NewRodin";
-  src: url("/fonts/NewRodinProEB.otf") format("opentype");
+  /* Latin subset of NewRodinProEB.otf (16 KB vs 3.8 MB) — regenerate with pyftsubset if glyphs are needed */
+  src: url("/fonts/NewRodinProEB-latin.woff2") format("woff2"), url("/fonts/NewRodinProEB.otf") format("opentype");
   font-weight: 800;
   font-style: normal;
   font-display: swap;
+  /* Japanese font: its punctuation (’ — · × …) is full-width, so let those fall back */
+  unicode-range: U+0000-00B6, U+00B8-00D6, U+00D8-1FFF, U+2070-21FF, U+2300-FFFF;
 }
 
 @theme {
   --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --font-psp: "NewRodin", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-lcd: "VT323", "JetBrains Mono", monospace;
+}
+
+/* ───────────────────────── Tokens ───────────────────────── */
+
+:root {
+  --accent: #e39a2a;
+  --accent-rgb: 227 154 42;
+  --accent-hi: #f3cf94;
+  --accent-lo: #7d5517;
+  --accent-deep: #1e170e;
+
+  --bg: #04060b;
+  --ink: #eef1f6;
+  --ink-dim: #a3abb9;
+  --ink-faint: #677083;
+  --line: rgb(255 255 255 / 0.09);
+
+  --chrome: linear-gradient(180deg, #ffffff 0%, #e4e8ee 18%, #b4bcc8 46%, #6c7584 51%, #a9b1bd 70%, #eef1f5 100%);
+  --chrome-soft: linear-gradient(180deg, #f6f8fb 0%, #c9cfd8 50%, #8f98a6 51%, #d7dce3 100%);
+  --chrome-text: linear-gradient(180deg, #ffffff 0%, #f2f4f8 34%, #a7afbc 49%, #5d6676 53%, #b8c0cb 72%, #ffffff 100%);
+  --piano: linear-gradient(180deg, #252831 0%, #14161c 34%, #0a0b10 100%);
+  --lcd-bg: #071c24;
+  --lcd-ink: #a6f6ff;
+
+  --r-lg: 22px;
+  --r-md: 14px;
+  --r-sm: 9px;
+
+  color-scheme: dark;
+}
+
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background-color: #000000;
-  color: #f1f5f9;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgb(var(--accent-rgb) / 0.45);
+  color: #fff;
+}
+
+/* Film grain over everything — subtle CRT/print texture */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 200;
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-hi);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Scrollbar: chrome thumb in a black track */
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: #06080d; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #8b94a2, #e6e9ee 45%, #9aa3b0);
+  border: 3px solid #06080d;
+  border-radius: 99px;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+@layer components {
+
+/* ───────────────────────── Type ───────────────────────── */
+
+.font-psp { letter-spacing: -0.01em; }
+
+.chrome-text {
+  background: var(--chrome-text);
+  background-size: 100% 1lh;
+  background-repeat: repeat-y;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.7)) drop-shadow(0 10px 22px rgb(0 0 0 / 0.55));
+}
+
+.accent-text {
+  background: linear-gradient(180deg, #fff 0%, var(--accent-hi) 30%, var(--accent) 55%, var(--accent-lo) 100%);
+  background-size: 100% 1lh;
+  background-repeat: repeat-y;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glow-text {
+  text-shadow: 0 0 8px rgb(255 255 255 / 0.65), 0 0 22px rgb(var(--accent-rgb) / 0.55);
+}
+
+.engraved {
+  color: #0b0d12;
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.55), 0 -1px 0 rgb(0 0 0 / 0.35);
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* ───────────────────────── Surfaces ───────────────────────── */
+
+/* Piano-black gloss slab with a chrome hairline rim */
+.panel {
+  position: relative;
+  background: var(--piano);
+  border-radius: var(--r-lg);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    inset 0 0 0 1px rgb(255 255 255 / 0.06),
+    inset 0 -2px 6px rgb(0 0 0 / 0.6),
+    0 1px 0 rgb(255 255 255 / 0.04),
+    0 30px 60px -30px rgb(0 0 0 / 0.9),
+    0 12px 24px -12px rgb(0 0 0 / 0.7);
+  isolation: isolate;
+}
+.panel::before {
+  /* top gloss sweep */
+  content: "";
+  position: absolute;
+  inset: 1px 1px auto 1px;
+  height: min(55%, 160px);
+  border-radius: calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 50% 50% / calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 18px 18px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.015) 70%, transparent);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Frosted translucent acrylic (iMac-G3 / Crystal PSP shell) */
+.glass {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.11), rgb(255 255 255 / 0.035) 45%, rgb(255 255 255 / 0.06)),
+    rgb(12 15 22 / 0.55);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  border-radius: var(--r-lg);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.28),
+    inset 0 0 0 1px rgb(255 255 255 / 0.1),
+    inset 0 -10px 30px rgb(var(--accent-rgb) / 0.06),
+    0 24px 50px -24px rgb(0 0 0 / 0.85);
+}
+
+/* Chrome bezel wrapper — put a .panel / .lcd inside */
+.chrome-rim {
+  padding: 2px;
+  border-radius: calc(var(--r-lg) + 2px);
+  background: var(--chrome);
+  box-shadow: 0 2px 0 rgb(0 0 0 / 0.5), 0 24px 50px -24px rgb(0 0 0 / 0.9);
+}
+.chrome-rim > * { border-radius: var(--r-lg); }
+
+/* Brushed aluminium */
+.metal {
+  background:
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.05) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgb(0 0 0 / 0.04) 0 2px, transparent 2px 5px),
+    linear-gradient(180deg, #e9ecf1 0%, #c3c9d2 48%, #aab1bc 52%, #d5dae1 100%);
+  color: #1a1e26;
+  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgb(0 0 0 / 0.25), 0 10px 26px -14px rgb(0 0 0 / 0.9);
+}
+
+/* Recessed well (inside of a panel) */
+.well {
+  background: linear-gradient(180deg, #050608, #0c0e13);
+  border-radius: var(--r-md);
+  box-shadow:
+    inset 0 2px 6px rgb(0 0 0 / 0.85),
+    inset 0 0 0 1px rgb(0 0 0 / 0.6),
+    0 1px 0 rgb(255 255 255 / 0.07);
+}
+
+/* Engraved groove divider */
+.groove {
+  height: 2px;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.75) 0 1px, rgb(255 255 255 / 0.07) 1px 2px);
+  border: 0;
+}
+
+/* Horizontal shelves that bleed to the edge but start aligned with the container */
+.shelf-pad {
+  --g: 1rem;
+  padding-inline: max(var(--g), calc((100vw - 1240px) / 2 + var(--g)));
+}
+@media (min-width: 768px) { .shelf-pad { --g: 2rem; } }
+
+/* Aqua pinstripes */
+.pinstripe {
+  background-image: repeating-linear-gradient(0deg, rgb(255 255 255 / 0.025) 0 1px, transparent 1px 4px);
+}
+
+/* Phillips-head screw */
+.screw {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f4f6f9, #9aa2ae 55%, #4b525d 100%);
+  box-shadow: inset 0 -1px 1px rgb(0 0 0 / 0.5), 0 1px 1px rgb(0 0 0 / 0.8);
+  pointer-events: none;
+}
+.screw::before,
+.screw::after {
+  content: "";
+  position: absolute;
+  inset: 50% 2px auto 2px;
+  height: 1.5px;
+  transform: translateY(-50%) rotate(var(--sr, 25deg));
+  background: rgb(0 0 0 / 0.55);
+  border-radius: 1px;
+}
+.screw::after { transform: translateY(-50%) rotate(calc(var(--sr, 25deg) + 90deg)); }
+
+/* ───────────────────────── LCD ───────────────────────── */
+
+.lcd {
+  position: relative;
+  background:
+    radial-gradient(120% 140% at 50% 0%, rgb(var(--accent-rgb) / 0.12), transparent 60%),
+    linear-gradient(180deg, #0a2731, var(--lcd-bg));
+  color: var(--lcd-ink);
+  border-radius: var(--r-md);
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 0.8),
+    inset 0 3px 10px rgb(0 0 0 / 0.75),
+    inset 0 0 40px rgb(120 240 255 / 0.05),
+    0 1px 0 rgb(255 255 255 / 0.08);
   overflow: hidden;
 }
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.lcd::after {
+  /* scanlines + glass glare */
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(165deg, rgb(255 255 255 / 0.09) 0%, rgb(255 255 255 / 0.02) 35%, transparent 36%),
+    repeating-linear-gradient(0deg, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 3px);
+  mix-blend-mode: normal;
+}
+.lcd-text {
+  font-family: var(--font-lcd);
+  color: var(--lcd-ink);
+  text-shadow: 0 0 6px rgb(140 240 255 / 0.65), 0 0 18px rgb(120 230 255 / 0.25);
+  letter-spacing: 0.04em;
+}
+.lcd-ghost {
+  color: rgb(166 246 255 / 0.07);
+  text-shadow: none;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+/* ───────────────────────── Controls ───────────────────────── */
+
+/* Gel / candy button (accent) */
+.gel {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.35rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+  color: #fff;
+  text-shadow: 0 1px 1px rgb(0 0 0 / 0.45);
+  background: linear-gradient(180deg, var(--accent-hi) 0%, var(--accent) 48%, var(--accent-lo) 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.55),
+    inset 0 -3px 8px rgb(0 0 0 / 0.25),
+    inset 0 0 0 1px rgb(0 0 0 / 0.25),
+    0 1px 0 rgb(255 255 255 / 0.1),
+    0 8px 22px -8px rgb(var(--accent-rgb) / 0.75);
+  transition: transform 0.12s ease, filter 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+  isolation: isolate;
+  white-space: nowrap;
+}
+.gel::before {
+  /* candy highlight blob */
+  content: "";
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  top: 2px;
+  height: 48%;
+  border-radius: 999px 999px 60% 60% / 999px 999px 100% 100%;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.85), rgb(255 255 255 / 0.12));
+  opacity: 0.75;
+  pointer-events: none;
+  z-index: -1;
+}
+.gel:hover { filter: brightness(1.08) saturate(1.1); }
+.gel:active { transform: translateY(1px) scale(0.985); filter: brightness(0.95); }
+
+.gel-chrome {
+  background: linear-gradient(180deg, #fbfcfd 0%, #d8dde4 48%, #a5adba 52%, #e6e9ee 100%);
+  color: #161a22;
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.8);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -2px 4px rgb(0 0 0 / 0.15),
+    inset 0 0 0 1px rgb(0 0 0 / 0.28),
+    0 8px 20px -10px rgb(0 0 0 / 0.9);
+}
+.gel-chrome::before { opacity: 0.5; }
+
+.gel-black {
+  background: linear-gradient(180deg, #3a3e48 0%, #16181e 50%, #050608 100%);
+  color: var(--ink);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.25),
+    inset 0 0 0 1px rgb(255 255 255 / 0.08),
+    0 8px 20px -10px rgb(0 0 0 / 0.9);
+}
+.gel-black::before { opacity: 0.25; }
+
+.gel-sm { padding: 0.45rem 0.95rem; font-size: 0.8rem; }
+
+/* Physical key (segmented controls, chips). Add .is-on for the pressed state */
+.key {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  background: linear-gradient(180deg, #2b2f38, #15171d);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    inset 0 0 0 1px rgb(255 255 255 / 0.05),
+    0 2px 0 #020305,
+    0 4px 10px -4px rgb(0 0 0 / 0.9);
+  transition: transform 0.1s ease, color 0.15s ease, background 0.15s ease;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+.key:hover { color: var(--ink); }
+.key:active { transform: translateY(1px); }
+.key.is-on {
+  color: #fff;
+  background: linear-gradient(180deg, rgb(var(--accent-rgb) / 0.35), rgb(var(--accent-rgb) / 0.12)), #0b0c10;
+  box-shadow:
+    inset 0 2px 5px rgb(0 0 0 / 0.75),
+    inset 0 0 0 1px rgb(var(--accent-rgb) / 0.55),
+    0 0 18px -4px rgb(var(--accent-rgb) / 0.6);
+  transform: translateY(1px);
+  text-shadow: 0 0 8px rgb(var(--accent-rgb) / 0.9);
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
+/* LED */
+.led {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, var(--accent) 45%, var(--accent-lo));
+  box-shadow: 0 0 6px var(--accent), 0 0 14px rgb(var(--accent-rgb) / 0.6);
+}
+.led-green {
+  background: radial-gradient(circle at 35% 30%, #eaffea, #3cff6e 45%, #0b7a2a);
+  box-shadow: 0 0 6px #3cff6e, 0 0 14px rgb(60 255 110 / 0.5);
+}
+.led-off {
+  background: radial-gradient(circle at 35% 30%, #555, #1c1e22);
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.8);
+}
+.led-blink { animation: led-blink 1.6s steps(2, jump-none) infinite; }
+@keyframes led-blink { 50% { opacity: 0.25; } }
+
+/* Text input styled as LCD field */
+.lcd-input {
+  width: 100%;
+  font-family: var(--font-lcd);
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--lcd-ink);
+  background: linear-gradient(180deg, #0a2731, var(--lcd-bg));
+  border-radius: 12px;
+  padding: 0.65rem 0.9rem;
+  border: 0;
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.85), inset 0 3px 10px rgb(0 0 0 / 0.75), 0 1px 0 rgb(255 255 255 / 0.08);
+  text-shadow: 0 0 6px rgb(140 240 255 / 0.6);
+}
+.lcd-input::placeholder { color: rgb(166 246 255 / 0.32); text-shadow: none; }
+.lcd-input:focus { box-shadow: inset 0 0 0 1px rgb(var(--accent-rgb) / 0.8), inset 0 3px 10px rgb(0 0 0 / 0.75), 0 0 0 3px rgb(var(--accent-rgb) / 0.2); }
+
+/* ───────────────────────── Stickers & badges ───────────────────────── */
+
+.holo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #1a1030;
+  background:
+    linear-gradient(115deg, transparent 20%, rgb(255 255 255 / 0.75) 40%, transparent 55%) 0 0 / 250% 100%,
+    conic-gradient(from 0deg, #ffd0f2, #c8f3ff, #d6ffcf, #fff3b8, #ffd0f2, #e2ccff, #ffd0f2);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.65), 0 2px 6px rgb(0 0 0 / 0.5);
+  animation: holo-sheen 4s linear infinite;
+}
+@keyframes holo-sheen { to { background-position: -250% 0, 0 0; } }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  background: rgb(255 255 255 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1), inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+.chip-accent {
+  color: var(--accent-hi);
+  background: rgb(var(--accent-rgb) / 0.14);
+  box-shadow: inset 0 0 0 1px rgb(var(--accent-rgb) / 0.4);
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+/* ───────────────────────── App icon tiles ───────────────────────── */
+
+.app-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 24%;
+  color: #fff;
+  background: linear-gradient(180deg, var(--ic-hi, var(--accent-hi)) 0%, var(--ic, var(--accent)) 50%, var(--ic-lo, var(--accent-lo)) 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.6),
+    inset 0 -4px 10px rgb(0 0 0 / 0.25),
+    inset 0 0 0 1px rgb(0 0 0 / 0.25),
+    0 10px 22px -10px rgb(0 0 0 / 0.9);
+  isolation: isolate;
+  overflow: hidden;
+}
+.app-icon::before {
+  content: "";
+  position: absolute;
+  inset: 3% 6% 50% 6%;
+  border-radius: 40% 40% 50% 50% / 40% 40% 30% 30%;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.75), rgb(255 255 255 / 0.05));
+  z-index: -1;
+}
+.app-icon svg { filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.45)); }
+
+/* ───────────────────────── Showcase stage ───────────────────────── */
+
+.stage-floor {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 86%;
+  height: 26%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgb(var(--accent-rgb) / 0.35), rgb(var(--accent-rgb) / 0.06) 45%, transparent 70%);
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+.reflect {
+  -webkit-box-reflect: below 2px linear-gradient(to bottom, transparent 55%, rgb(255 255 255 / 0.22));
+}
+
+/* Tilt card glare */
+.tilt {
+  transform-style: preserve-3d;
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+  transition: transform 0.35s cubic-bezier(.2, .8, .2, 1);
+  will-change: transform;
+}
+.tilt.is-tilting { transition: transform 0.06s linear; }
+.tilt-glare {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(500px circle at var(--gx, 50%) var(--gy, 0%), rgb(255 255 255 / 0.14), transparent 40%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 3;
+}
+.tilt.is-tilting .tilt-glare { opacity: 1; }
+
+/* ───────────────────────── UMD disc ───────────────────────── */
+
+.umd {
+  position: relative;
+  aspect-ratio: 64 / 69.5;
+  border-radius: 16% 16% 12% 12% / 14% 14% 11% 11%;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.03) 30%, transparent 60%),
+    linear-gradient(160deg, #3a3e47, #121318 60%, #08090c);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.3),
+    inset 0 0 0 1px rgb(255 255 255 / 0.08),
+    0 18px 30px -16px rgb(0 0 0 / 0.95);
+  overflow: hidden;
+}
+.umd-window {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 6%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 2px rgb(0 0 0 / 0.6), inset 0 3px 10px rgb(0 0 0 / 0.7);
+}
+.umd-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, #0b0c10 0 13%, #9aa3b0 13.5% 15%, transparent 15.5%),
+    conic-gradient(from 20deg, #e9eef5, #9ec7ff, #f7d2ff, #c2ffe0, #fff6c4, #e9eef5, #b8c3d2, #ffd7ef, #e9eef5);
+  transform: rotate(var(--a, 0deg));
+  transition: transform 1.2s cubic-bezier(.2, .8, .2, 1);
+}
+.group:hover .umd-disc, .umd:hover .umd-disc { transform: rotate(calc(var(--a, 0deg) + 240deg)); }
+.umd-label {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 5%;
+  height: 31%;
+  border-radius: 8px;
+  padding: 5% 7%;
+  overflow: hidden;
+  z-index: 2;
+  box-shadow: 0 4px 10px -2px rgb(0 0 0 / 0.6);
+}
+
+/* ───────────────────────── Motion ───────────────────────── */
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.float { animation: float-y 6s ease-in-out infinite; }
+
+@keyframes marquee { to { transform: translateX(-50%); } }
+.marquee { animation: marquee 60s linear infinite; }
+
+@keyframes sheen {
+  0% { transform: translateX(-120%) skewX(-20deg); }
+  60%, 100% { transform: translateX(220%) skewX(-20deg); }
+}
+.sheen { position: relative; overflow: hidden; }
+.sheen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.18), transparent);
+  animation: sheen 5.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

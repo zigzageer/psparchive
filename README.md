@@ -11,14 +11,17 @@
 
 ## ✨ Features
 
-- **Interactive Timeline**: Scroll through the history of the PSP, from the original 1000 series to the PSP Street, organized by release year.
-- **Grid View**: A dense, highly visual grid of every single color variation across all models.
-- **Advanced Filtering**: Instantly filter by specific models (e.g., PSP Go), color families (e.g., Blue, Pink), or edition types (Standard vs. Limited).
-- **3D Hover Effects**: Smooth, physics-based 3D tilt effects powered by Framer Motion.
-- **Responsive Design**: Fully optimized for mobile, tablet, and desktop viewing.
-- **High-Quality Assets**: Custom CSS-drawn PSP icons and high-resolution imagery for special editions.
-
-- **Image Gallery**: Click any PSP to open a detail view with a full image gallery — browse front, back, magazine clippings, teardown photos, and more.
+- **Interactive PSP hero**: a fully CSS-built PSP-1000 whose screen runs a working XMB menu. Browse it with the arrow keys, the on-screen d-pad, swipes or by dragging the analog nub — ✕ / Enter opens a section, △ jumps to a random colourway.
+- **Colour Archive**: all 56 colourways with front/back photography, filterable by model, colour family, edition and free-text search (filters live in the URL). Every colourway has its own showroom page with a front/back flip, spec plate and prev/next navigation (← →).
+- **Hardware**: a deep spec sheet for each of the five families — release dates, launch pricing, motherboard revisions, launch firmware, what changed, strengths/weaknesses and trivia — plus an accessories catalogue.
+- **Compare**: side-by-side spec table with a "differences only" mode, to-scale footprint silhouettes and weight bars.
+- **History**: an interactive timeline from the 2003 announcement to today, split into eras and filterable by hardware / firmware / games / business / scene.
+- **Games**: 64 essential games rendered as UMD discs, with search, genre and tag filters (Essential, Hidden gem, Japan only…) and a random pick.
+- **Firmware**: the notable system updates from 1.00 to 6.61, styled as a PSP System Update screen.
+- **Homebrew**: the history of PSP exploits and custom firmware (descriptive only, no downloads), today’s typical setup, notable homebrew and a glossary.
+- **Buyer’s guide**: which model to buy, a model-number decoder (PSP-3004 → PSP-3000, Europe), a persistent inspection checklist, region codes, care tips and an FAQ.
+- **XMB themes**: like the real PSP, the site’s accent colour follows the month. Pick any of the 12 colours from the orb in the nav.
+- **Optional UI sounds**: synthesised XMB-style blips (off by default).
 
 ## 🛠️ Tech Stack
 
@@ -112,7 +115,24 @@ OpenGraph and Twitter Card meta tags are pre-configured for beautiful social sha
 
 ## 🎨 Design Philosophy
 
-The PSP Archive was designed with a "dark mode first" aesthetic, utilizing deep blacks, subtle glows, and high-contrast typography to make the vibrant colors of the consoles pop. The UI is intentionally minimal, getting out of the way to let the hardware shine.
+PSP Archive leans into **Y2K skeuomorphism**: piano-black gloss slabs with chrome bezels, brushed-aluminium labels, candy “gel” buttons, backlit LCD readouts with scanlines, holographic LIMITED stickers and physical keycaps that depress when active. The PSP’s own XMB wave ribbons run behind everything, tinted by the month — just as the real console did. Headlines use NewRodin, the PSP’s system font (shipped as a 16 KB Latin subset).
+
+## 🗂️ Project structure
+
+```
+src/
+  App.tsx            Shell + routes (inner pages are lazy-loaded)
+  router.tsx         Tiny History-API router (Link, navigate, usePath)
+  theme.tsx          XMB month themes + sound preference
+  data.ts            Colourway data (56 finishes)
+  data/              models, history, games, firmware, scene, guide
+  lib/catalog.ts     Colourway helpers (images from the blob manifest, families)
+  components/        PSPDevice (CSS PSP + XMB), Nav, Footer, ColorCard, UMD, ui primitives
+  pages/             Home, Colors, ColorDetail, Models, ModelDetail, Compare,
+                     History, Games, Firmware, Homebrew, Guide, NotFound
+```
+
+`vercel.json` rewrites every path to `index.html` so deep links like `/models/psp-go` work.
 
 ## 📝 License
 
