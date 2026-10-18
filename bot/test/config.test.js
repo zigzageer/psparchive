@@ -61,6 +61,16 @@ test('launcher allows one game at a time and clears on exit', () => {
   assert.equal(currentGame(), null);
 });
 
+test('runner prefixes the launch command', () => {
+  const fake = new EventEmitter();
+  fake.kill = () => fake.emit('exit', 0);
+  const calls = [];
+  const spawnFn = (...args) => { calls.push(args); return fake; };
+  launch({ exe: process.execPath, args: ['-x'], runner: ['wine'], game: { name: 'G' }, pack: {} }, { spawnFn });
+  assert.deepEqual([calls[0][0], calls[0][1]], ['wine', [process.execPath, '-x']]);
+  stop();
+});
+
 test('launcher refuses a missing exe', () => {
   assert.throws(() => launch({ exe: '/no/such/game.exe', args: [], game: {}, pack: {} }), /not found/);
 });

@@ -17,7 +17,8 @@ export function launch(resolved, { spawnFn = spawn } = {}) {
   if (!fs.existsSync(resolved.exe)) {
     throw new Error(`Executable not found on the host: ${resolved.exe}`);
   }
-  const child = spawnFn(resolved.exe, resolved.args, {
+  const [cmd, ...cmdArgs] = [...(resolved.runner ?? []), resolved.exe, ...resolved.args];
+  const child = spawnFn(cmd, cmdArgs, {
     cwd: path.dirname(resolved.exe),
     stdio: 'ignore',
     windowsHide: false,

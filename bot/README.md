@@ -23,7 +23,7 @@ with its own `exe` (like Quiplash 3) is launched directly.
 
 ## Setup
 
-Run it on the Windows PC or VPS that has the games installed.
+Run it on the PC or VPS that has the games installed (Windows, or Linux with Wine/Proton).
 
 1. Create an application at https://discord.com/developers/applications, add a
    bot, and copy its token and the application ID.
@@ -37,6 +37,9 @@ Run it on the Windows PC or VPS that has the games installed.
    npm run register                  # once, and again whenever commands change
    npm start
    ```
+
+On a Linux host, add `"runner": ["wine"]` (or your Proton command) at the top
+of `games.json` and use Linux paths for `exe`; every launch is prefixed with it.
 
 `games.json` is re-read on every command, so path edits apply without a restart.
 Matching ignores case, spaces and punctuation, so `Quiplash 2` and `quiplash2`
