@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-command setup for the Jackbox bot on a fresh Ubuntu 24.04 VPS.
+# One-command setup for the Jackbox bot on a fresh Ubuntu VPS (24.04 or newer).
 #
 #   curl -fsSL https://raw.githubusercontent.com/zigzageer/psparchive/main/server/install.sh | sudo bash
 #
@@ -32,10 +32,15 @@ dpkg --add-architecture i386
 apt-get update -q
 apt-get install -y -q ca-certificates curl git xvfb openbox xdotool pulseaudio ffmpeg \
   tesseract-ocr fonts-dejavu-core wine wine64 wine32:i386 winbind
-if ! command -v node >/dev/null || [[ $(node -p 'process.versions.node.split(".")[0]') -lt 22 ]]; then
+node_major() { command -v node >/dev/null && node -p 'process.versions.node.split(".")[0]' || echo 0; }
+if [[ $(node_major) -lt 22 ]]; then
   log "Installing Node.js 22"
-  curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-  apt-get install -y -q nodejs
+  # Newer Ubuntu releases ship Node 22+ themselves; older ones need NodeSource.
+  apt-get install -y -q nodejs || true
+  if [[ $(node_major) -lt 22 ]]; then
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+    apt-get install -y -q nodejs
+  fi
 fi
 
 log "Creating the $APP_USER user and folders"
@@ -64,6 +69,8 @@ if ! /usr/local/bin/mediamtx --version 2>/dev/null | grep -q "$MEDIAMTX_VERSION"
   install -m 0755 "$tmp/mediamtx" /usr/local/bin/mediamtx
   rm -rf "$tmp"
 fi
+# Small servers (2 cores) share the CPU between the game and the encoder, so stream fewer frames.
+if [[ $(nproc) -le 2 ]]; then STREAM_FPS=24; STREAM_BITRATE=1800k; else STREAM_FPS=30; STREAM_BITRATE=2500k; fi
 PUBLIC_IP=${PUBLIC_IP:-$(curl -fsS --max-time 5 https://api.ipify.org || hostname -I | awk '{print $1}')}
 sed "s/PUBLIC_IP/$PUBLIC_IP/" $REPO_DIR/server/mediamtx.yml > /etc/jackbox-mediamtx.yml
 
@@ -146,6 +153,8 @@ User=$APP_USER
 $common_env
 Environment=STREAM_PUBLIC_URL=http://$PUBLIC_IP:8889/game
 Environment=STREAM_SIZE=$SCREEN_SIZE
+Environment=STREAM_FPS=$STREAM_FPS
+Environment=STREAM_BITRATE=$STREAM_BITRATE
 WorkingDirectory=$BOT_DIR
 ExecStart=/usr/bin/node src/index.js
 Restart=on-failure

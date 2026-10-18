@@ -1,6 +1,6 @@
 # Jackbox server setup (Linux VPS)
 
-Turns a fresh Ubuntu 24.04 VPS (tested target: OVHcloud VPS-1, 4 vCPU / 8 GB) into a
+Turns a fresh Ubuntu VPS (24.04 or newer, e.g. OVHcloud VPS-1) into a
 host where `/jackbox 3 quiplash2` launches the game, streams it, and posts the room code.
 
 What runs on the server, all as systemd services under a `jackbox` user:
