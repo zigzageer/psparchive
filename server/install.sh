@@ -36,12 +36,14 @@ node_major() { command -v node >/dev/null && node -p 'process.versions.node.spli
 if [[ $(node_major) -lt 22 ]]; then
   log "Installing Node.js 22"
   # Newer Ubuntu releases ship Node 22+ themselves; older ones need NodeSource.
-  apt-get install -y -q nodejs || true
+  apt-get install -y -q nodejs npm || true
   if [[ $(node_major) -lt 22 ]]; then
     curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
     apt-get install -y -q nodejs
   fi
 fi
+# Ubuntu's own nodejs package leaves npm out (NodeSource's includes it).
+command -v npm >/dev/null || apt-get install -y -q npm
 
 log "Creating the $APP_USER user and folders"
 id -u $APP_USER >/dev/null 2>&1 || useradd --system --create-home --home-dir $APP_DIR/home --shell /usr/sbin/nologin $APP_USER
