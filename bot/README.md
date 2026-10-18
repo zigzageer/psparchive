@@ -2,8 +2,9 @@
 
 A Discord bot with a `/jackbox <pack> <game>` slash command. It looks the game up in
 `games.json`, launches its `.exe` on the machine the bot runs on, and joins the
-caller's voice channel. Streaming the game into the channel is a stub
-(`src/streaming.js`) until the streaming approach is decided.
+caller's voice channel. On the Linux server setup in [`../server`](../server/README.md)
+it also streams the game to a WebRTC page (`src/streaming.js`), presses menu keys and
+posts the room code read off the screen (`src/screen.js`).
 
 Built with **discord.js** (v14) and **@discordjs/voice**: the rest of this repo is
 Node, discord.js has the most complete slash-command/autocomplete support, and

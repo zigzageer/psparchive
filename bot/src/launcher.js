@@ -37,10 +37,14 @@ export function launch(resolved, { spawnFn = spawn } = {}) {
 }
 
 /** Kills the running game, if any. Returns what was stopped or null. */
-export function stop() {
+export function stop({ spawnFn = spawn } = {}) {
   if (!current) return null;
   const { child, info } = current;
   current = null;
   child.kill();
+  // Wine keeps the game alive after its launcher process dies; end the whole session.
+  if (/wine|proton/i.test(info.runner?.[0] ?? '')) {
+    spawnFn('wineserver', ['-k'], { stdio: 'ignore' }).once('error', () => {});
+  }
   return info;
 }

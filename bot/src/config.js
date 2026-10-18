@@ -18,7 +18,7 @@ export function normalize(value) {
 
 /**
  * Reads the games config. Shape:
- *   { runner?: [cmd, ...args], packs: { <packKey>: { name, exe?, args?, games: { <gameKey>: { name, exe?, args? } } } } }
+ *   { runner?: [cmd, ...args], packs: { <packKey>: { name, exe?, args?, menuDelayMs?, games: { <gameKey>: { name, exe?, args?, keys?, menuDelayMs? } } } } }
  * `runner` prefixes every launch, e.g. ["wine"] or ["proton", "run"] on a Linux host.
  * A game inherits the pack's exe/args when it has none of its own, since most
  * Jackbox packs ship as one executable with the game picked in its menu.
@@ -52,7 +52,7 @@ export function findPack(config, query) {
   return null;
 }
 
-/** Returns { pack, game, exe, args, runner, viaPackMenu } or null when either name is unknown. */
+/** Returns { pack, game, exe, args, runner, keys, menuDelayMs, viaPackMenu } or null when either name is unknown. */
 export function resolveGame(config, packQuery, gameQuery) {
   const pack = findPack(config, packQuery);
   if (!pack) return null;
@@ -65,6 +65,9 @@ export function resolveGame(config, packQuery, gameQuery) {
         exe: game.exe ?? pack.exe,
         args: game.args ?? pack.args ?? [],
         runner: config.runner ?? [],
+        // xdotool key names pressed after launch to pick the game in the pack's menu.
+        keys: game.keys ?? [],
+        menuDelayMs: game.menuDelayMs ?? pack.menuDelayMs ?? 20_000,
         // True when the pack's shared exe is launched, so players still pick the game in its menu.
         viaPackMenu: !game.exe,
       };

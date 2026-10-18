@@ -1,0 +1,17 @@
+{
+  "runner": ["wine"],
+  "packs": {
+    "3": {
+      "name": "The Jackbox Party Pack 3",
+      "exe": "/opt/jackbox/games/The Jackbox Party Pack 3/The Jackbox Party Pack 3.exe",
+      "menuDelayMs": 20000,
+      "games": {
+        "quiplash2": { "name": "Quiplash 2", "keys": [] },
+        "triviamurderparty": { "name": "Trivia Murder Party", "keys": [] },
+        "guesspionage": { "name": "Guesspionage", "keys": [] },
+        "fakinit": { "name": "Fakin' It", "keys": [] },
+        "teeko": { "name": "Tee K.O.", "keys": [] }
+      }
+    }
+  }
+}
