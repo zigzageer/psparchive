@@ -63,6 +63,7 @@ fi
 sudo -u $APP_USER bash -c "cd $BOT_DIR && npm ci --omit=dev --no-audit --no-fund"
 [[ -f $BOT_DIR/games.json ]] || sudo -u $APP_USER cp $REPO_DIR/server/games.linux.json $BOT_DIR/games.json
 install -m 0755 $REPO_DIR/server/jackbox-config /usr/local/bin/jackbox-config
+install -m 0755 $REPO_DIR/server/jackbox-steam /usr/local/bin/jackbox-steam
 
 log "Installing MediaMTX $MEDIAMTX_VERSION"
 if ! /usr/local/bin/mediamtx --version 2>/dev/null | grep -q "$MEDIAMTX_VERSION"; then
@@ -181,9 +182,8 @@ fi
 cat <<EOF
 
 Done. Next steps:
-  1. Upload your Jackbox game folders into $GAMES_DIR
-     (for example $GAMES_DIR/The Jackbox Party Pack 3/), then run:
-       sudo chown -R $APP_USER:$APP_USER $GAMES_DIR
+  1. Run:  sudo jackbox-steam
+     to download your Jackbox packs from your Steam account.
   2. Run:  sudo jackbox-config
      to enter your Discord bot token and start the bot.
   The stream will be at http://$PUBLIC_IP:8889/game while a game runs.

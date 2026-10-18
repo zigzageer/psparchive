@@ -30,10 +30,11 @@ curl -fsSL https://raw.githubusercontent.com/zigzageer/psparchive/claude/project
 
 Then:
 
-1. Upload each game folder into `/opt/jackbox/games/` (SFTP with WinSCP or FileZilla works),
-   for example `/opt/jackbox/games/The Jackbox Party Pack 3/`, and run
-   `sudo chown -R jackbox:jackbox /opt/jackbox/games`.
-2. Edit `/opt/jackbox/repo/bot/games.json` so each `exe` path matches your files.
+1. Run `sudo jackbox-steam` to download the packs you own from your Steam account
+   (it asks for your Steam login and Steam Guard code once). `sudo jackbox-steam 3 7`
+   downloads only some packs.
+2. `games.json` already lists packs 1 and 3 to 8 at the paths `jackbox-steam` uses;
+   edit `/opt/jackbox/repo/bot/games.json` only to add menu `keys`.
 3. Run `sudo jackbox-config` and paste your Discord bot token, application ID and server ID.
 
 Re-running `install.sh` updates everything and keeps `games.json` and the token.
