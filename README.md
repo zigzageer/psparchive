@@ -11,7 +11,7 @@
 
 ## ✨ Features
 
-- **Interactive 3D PSP hero**: a real-time three.js model of the PSP-1000, built 1:1 in millimetres from a traced product photo, with glossy clearcoat materials, studio reflections and the five launch shell colours. Its screen runs a live XMB menu that navigates the site. Use the arrow keys, click the 3D d-pad and buttons, swipe, or drag the analog nub. ✕/START opens, △ jumps to a random colourway, SELECT changes the shell, ◐ cycles the XMB colour and VOL/♪ toggle sound. Without WebGL it falls back to a CSS-drawn PSP.
+- **Interactive PSP hero**: a flat, straight-on, skeuomorphic PSP-1000 drawn in SVG, 1:1 in millimetres from a traced product photo, with glossy plastic, recessed wells, keys that sink when pressed, soft shadows from a single light and the five launch shell colours. Its screen runs a live XMB menu that navigates the site. Use the arrow keys, click the d-pad and buttons, swipe, or drag the analog nub. ✕/START opens, △ jumps to a random colourway, SELECT changes the shell, ◐ cycles the XMB colour and VOL/♪ toggle sound.
 - **Colour Archive**: all 56 colourways with front/back photography, filterable by model, colour family, edition and free-text search (filters live in the URL). Every colourway has its own showroom page with a front/back flip, spec plate and prev/next navigation (← →).
 - **Hardware**: a deep spec sheet for each of the five families — release dates, launch pricing, motherboard revisions, launch firmware, what changed, strengths/weaknesses and trivia — plus an accessories catalogue.
 - **Compare**: side-by-side spec table with a "differences only" mode, to-scale footprint silhouettes and weight bars.
@@ -28,7 +28,6 @@
 - **Framework**: [React 19](https://react.dev/) + [Vite](https://vitejs.dev/)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **Animations**: [Motion (Framer Motion)](https://motion.dev/)
-- **3D**: [three.js](https://threejs.org/) + [React Three Fiber](https://r3f.docs.pmnd.rs/)
 - **Icons**: [Lucide React](https://lucide.dev/)
 - **Image Storage**: [Vercel Blob](https://vercel.com/docs/storage/vercel-blob)
 - **Deployment**: [Vercel](https://vercel.com/)
@@ -128,7 +127,7 @@ src/
   data.ts            Colourway data (56 finishes)
   data/              models, history, games, firmware, scene, guide
   lib/catalog.ts     Colourway helpers (images from the blob manifest, families)
-  components/        psp3d/ (3D PSP), PSPDevice (CSS fallback), xmb (menu), Nav, Footer, ColorCard, UMD, ui
+  components/        PSPDevice + psp-shape (hero PSP), xmb (menu), Nav, Footer, ColorCard, UMD, ui
   pages/             Home, Colors, ColorDetail, Models, ModelDetail, Compare,
                      History, Games, Firmware, Homebrew, Guide, NotFound
 ```

@@ -1,5 +1,12 @@
 # Updates Tracker
 
+## 2026-10-18 — Flat skeuomorphic PSP hero
+- Replaced the three.js PSP with a flat, straight-on SVG PSP-1000 in the style of the DEsk desktop: real materials, one light from above, soft shadows, no 3D tilt
+- Same traced 1:1 geometry in mm (`src/components/psp-shape.ts`): outline, silver L/R and strap holder, d-pad keys, face buttons, nub, bottom row, grille, speakers, logos and labels
+- Glossy shell with a lit rounded edge, room/lamp/window reflections, recessed wells, domed face buttons, knurled nub, glowing LEDs and a glass screen over the live XMB
+- Every key still works (d-pad, face buttons, L/R, HOME, VOL±, ◐, ♪, SELECT, START, draggable nub) and sinks when pressed; all five shells redrawn as flat palettes
+- Removed `three`, `@react-three/fiber`, `@types/three` and `src/components/psp3d/`; no WebGL fallback is needed any more
+
 ## 2026-10-17 — 3D PSP accuracy pass
 - Compared a straight-on render (`/?pose=front`) against the reference photo at matching scale and fixed the mismatches
 - D-pad keys rebuilt to measured shape (curved outer end on the 12 mm well, pointed tip 3.5 mm from centre), larger arrow glyphs

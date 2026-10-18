@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, ChevronLeft, ChevronRight, Shuffle, Palette, Cpu, GitCompareArrows, Clock, Disc3, Download, Terminal, BookOpen } from 'lucide-react';
 import { PSPDevice } from '../components/PSPDevice';
@@ -10,28 +10,6 @@ import { models } from '../data/models';
 import { games } from '../data/games';
 import { history } from '../data/history';
 import { mix } from '../theme';
-
-// The 3D PSP (three.js) loads on demand; the CSS-drawn PSP stands in while it loads and when WebGL is missing.
-const PSP3D = lazy(() => import('../components/psp3d/PSP3D'));
-
-function hasWebGL() {
-  try {
-    const c = document.createElement('canvas');
-    return !!(c.getContext('webgl2') || c.getContext('webgl'));
-  } catch {
-    return false;
-  }
-}
-
-function HeroDevice() {
-  const [webgl] = useState(hasWebGL);
-  if (!webgl) return <PSPDevice />;
-  return (
-    <Suspense fallback={<PSPDevice />}>
-      <PSP3D />
-    </Suspense>
-  );
-}
 
 const TICKER = [
   'PSP-1000 launched in Japan on 12 Dec 2004 for ¥19,800',
@@ -129,7 +107,7 @@ function Hero() {
           transition={{ duration: 0.9, delay: 0.15, ease: [0.2, 0.8, 0.2, 1] }}
           className="relative mx-auto mt-6 md:mt-8 w-[calc(100%+1.5rem)] -mx-3 sm:mx-auto sm:w-full max-w-[1120px]"
         >
-          <HeroDevice />
+          <PSPDevice />
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mt-14 flex flex-col items-center gap-6">
